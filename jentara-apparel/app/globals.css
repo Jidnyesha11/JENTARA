@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #4b1e1e;
+  --secondary: #f5f1ec;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: white;
+  color: #111827;
+  overflow-x: hidden;
+}
+
+.container-custom {
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
