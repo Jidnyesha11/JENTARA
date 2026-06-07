@@ -1,14 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 :root {
   --primary: #4b1e1e;
   --secondary: #f5f1ec;
-}
-
-html {
-  scroll-behavior: smooth;
 }
 
 body {
