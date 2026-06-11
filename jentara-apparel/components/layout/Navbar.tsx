@@ -1,12 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, ShoppingBag, User } from "lucide-react";
+import { Heart, ShoppingBag } from "lucide-react";
+
+import { useAuth } from "@/hooks/useAuth";
+import { signOut } from "@/lib/supabase/auth";
+import { useRouter } from "next/navigation";
 
 import { useCartStore } from "@/store/cartStore";
 import { useWishlistStore } from "@/store/wishlistStore";
 
 export default function Navbar() {
+  const router = useRouter();
+
+const { user } = useAuth();
+
+async function handleLogout() {
+  await signOut();
+  router.push("/");
+}
   const cartItems = useCartStore(
   (state) => state.items
 );
@@ -101,7 +113,50 @@ const wishlistCount =
     </span>
   )}
 </Link>
-            <User size={22} />
+           {user ? (
+  <div className="flex items-center gap-4">
+
+    <Link
+      href="/orders"
+      className="text-sm font-medium"
+    >
+      Orders
+    </Link>
+
+    <Link
+      href="/profile"
+      className="text-sm font-medium"
+    >
+      Profile
+    </Link>
+
+    <button
+      onClick={handleLogout}
+      className="text-sm font-medium"
+    >
+      Logout
+    </button>
+
+  </div>
+) : (
+  <div className="flex items-center gap-4">
+
+    <Link
+      href="/login"
+      className="text-sm font-medium"
+    >
+      Login
+    </Link>
+
+    <Link
+      href="/register"
+      className="text-sm font-medium"
+    >
+      Register
+    </Link>
+
+  </div>
+)} 
           </div>
         </div>
       </div>

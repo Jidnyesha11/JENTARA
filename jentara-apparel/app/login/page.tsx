@@ -1,8 +1,37 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, Lock, ArrowRight, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
+import { signIn } from "@/lib/supabase/auth";
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleLogin() {
+    try {
+      setLoading(true);
+      const { error } = await signIn(email, password);
+      if (error) {
+        throw error;
+      }
+      router.push("/profile");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert(String(error));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-[#4a0f0f] to-[#8b2e24] flex overflow-hidden relative">
 
@@ -129,9 +158,12 @@ export default function LoginPage() {
             <div className="flex items-center gap-3 border-b border-white/20 pb-3 group-focus-within:border-white/60 transition-colors">
               <Mail className="text-white/40 group-focus-within:text-white/70 transition-colors shrink-0" size={16} />
               <input
-                type="email"
-                placeholder="yourname@email.com"
-                className="bg-transparent outline-none text-white w-full placeholder:text-white/25 text-sm tracking-wide"
+               type="email"
+               value={email}
+               onChange={(e) =>
+               setEmail(e.target.value)
+              }
+               placeholder="yourname@email.com"
               />
             </div>
           </div>
@@ -145,8 +177,13 @@ export default function LoginPage() {
               <Lock className="text-white/40 group-focus-within:text-white/70 transition-colors shrink-0" size={16} />
               <input
                 type="password"
-                placeholder="••••••••"
-                className="bg-transparent outline-none text-white w-full placeholder:text-white/25 text-sm tracking-wide"
+                value={password}
+                onChange={(e) =>
+               setPassword(
+               e.target.value
+               )
+               }
+              placeholder="••••••••"
               />
             </div>
             <div className="flex justify-end mt-2">
@@ -157,8 +194,8 @@ export default function LoginPage() {
           </div>
 
           {/* CTA Button */}
-          <button className="w-full bg-[#e7dbd0] text-[#5c1d15] py-4 rounded-full flex items-center justify-between px-7 font-semibold tracking-widest uppercase text-xs hover:bg-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/30 mb-7">
-            <span>Continue</span>
+          <button onClick={handleLogin} disabled={loading} className="w-full bg-[#e7dbd0] text-[#5c1d15] py-4 rounded-full flex items-center justify-between px-7 font-semibold tracking-widest uppercase text-xs hover:bg-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/30 mb-7 disabled:opacity-50 disabled:cursor-not-allowed">
+            <span>{loading ? "Signing in..." : "Continue"}</span>
             <div className="w-8 h-8 rounded-full bg-[#5c1d15]/10 flex items-center justify-center">
               <ArrowRight size={15} />
             </div>

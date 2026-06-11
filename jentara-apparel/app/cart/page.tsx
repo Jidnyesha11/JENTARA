@@ -1,6 +1,7 @@
 "use client";
 
 import { useCartStore } from "@/store/cartStore";
+import Link from "next/link";
 
 export default function CartPage() {
   const items = useCartStore(
@@ -96,6 +97,20 @@ export default function CartPage() {
           <div className="mt-10 text-2xl font-bold">
             Total: ₹{getTotal()}
           </div>
+          <Link
+  href="/checkout"
+  className="
+    inline-block
+    mt-6
+    bg-black
+    text-white
+    px-8
+    py-4
+    rounded-lg
+  "
+>
+  Proceed To Checkout
+</Link>
         </>
       )}
     </div>

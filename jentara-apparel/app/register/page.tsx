@@ -1,8 +1,70 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { User, Mail, Phone, Lock, ArrowRight, Sparkles } from "lucide-react";
 
-export default function RegisterPage() {
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+import { signUp } from "@/lib/supabase/auth";
+
+    export default function RegisterPage() {
+  const router = useRouter();
+
+  const [fullName, setFullName] =
+    useState("");
+
+  const [email, setEmail] =
+    useState("");
+
+  const [phone, setPhone] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
+
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
+
+  async function handleRegister() {
+    try {
+      if (password !== confirmPassword) {
+        alert("Passwords do not match");
+        return;
+      }
+
+      setLoading(true);
+
+      const { error } =
+        await signUp(
+          email,
+          password
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      alert(
+        "Verification email sent."
+      );
+
+      router.push("/login");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert(String(error));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-[#4a0f0f] to-[#8b2e24] flex overflow-hidden relative">
 
@@ -106,42 +168,135 @@ export default function RegisterPage() {
 
           <div className="w-full h-[1px] bg-white/10 mb-7" />
 
-          {/* Fields */}
-          {[
-            { icon: <User size={15} />, label: "Full Name", type: "text", placeholder: "Your full name" },
-            { icon: <Mail size={15} />, label: "Email Address", type: "email", placeholder: "yourname@email.com" },
-            { icon: <Phone size={15} />, label: "Mobile Number", type: "tel", placeholder: "+91 00000 00000" },
-            { icon: <Lock size={15} />, label: "Password", type: "password", placeholder: "••••••••" },
-            { icon: <Lock size={15} />, label: "Confirm Password", type: "password", placeholder: "••••••••" },
-          ].map(({ icon, label, type, placeholder }, i) => (
-            <div className="group mb-5" key={i}>
-              <label className="block text-[10px] tracking-[0.3em] uppercase text-white/40 mb-2 group-focus-within:text-white/70 transition-colors">
-                {label}
-              </label>
-              <div className="flex items-center gap-3 border-b border-white/20 pb-2.5 group-focus-within:border-white/60 transition-colors">
-                <span className="text-white/40 group-focus-within:text-white/70 transition-colors shrink-0">
-                  {icon}
-                </span>
-                <input
-                  type={type}
-                  placeholder={placeholder}
-                  className="bg-transparent outline-none text-white w-full placeholder:text-white/25 text-sm tracking-wide"
-                />
-              </div>
-            </div>
-          ))}
+          {/* Full Name */}
 
+<div className="group mb-5">
+  <label className="block text-[10px] tracking-[0.3em] uppercase text-white/40 mb-2">
+    Full Name
+  </label>
+
+  <div className="flex items-center gap-3 border-b border-white/20 pb-2.5">
+    <User size={15} className="text-white/40" />
+
+    <input
+      type="text"
+      value={fullName}
+      onChange={(e) =>
+        setFullName(e.target.value)
+      }
+      placeholder="Your full name"
+      className="bg-transparent outline-none text-white w-full placeholder:text-white/25 text-sm tracking-wide"
+    />
+  </div>
+</div>
+
+{/* Email */}
+
+<div className="group mb-5">
+  <label className="block text-[10px] tracking-[0.3em] uppercase text-white/40 mb-2">
+    Email Address
+  </label>
+
+  <div className="flex items-center gap-3 border-b border-white/20 pb-2.5">
+    <Mail size={15} className="text-white/40" />
+
+    <input
+      type="email"
+      value={email}
+      onChange={(e) =>
+        setEmail(e.target.value)
+      }
+      placeholder="yourname@email.com"
+      className="bg-transparent outline-none text-white w-full placeholder:text-white/25 text-sm tracking-wide"
+    />
+  </div>
+</div>
+
+{/* Phone */}
+
+<div className="group mb-5">
+  <label className="block text-[10px] tracking-[0.3em] uppercase text-white/40 mb-2">
+    Mobile Number
+  </label>
+
+  <div className="flex items-center gap-3 border-b border-white/20 pb-2.5">
+    <Phone size={15} className="text-white/40" />
+
+    <input
+      type="tel"
+      value={phone}
+      onChange={(e) =>
+        setPhone(e.target.value)
+      }
+      placeholder="+91 00000 00000"
+      className="bg-transparent outline-none text-white w-full placeholder:text-white/25 text-sm tracking-wide"
+    />
+  </div>
+</div>
+
+{/* Password */}
+
+<div className="group mb-5">
+  <label className="block text-[10px] tracking-[0.3em] uppercase text-white/40 mb-2">
+    Password
+  </label>
+
+  <div className="flex items-center gap-3 border-b border-white/20 pb-2.5">
+    <Lock size={15} className="text-white/40" />
+
+    <input
+      type="password"
+      value={password}
+      onChange={(e) =>
+        setPassword(e.target.value)
+      }
+      placeholder="••••••••"
+      className="bg-transparent outline-none text-white w-full placeholder:text-white/25 text-sm tracking-wide"
+    />
+  </div>
+</div>
+
+{/* Confirm Password */}
+
+<div className="group mb-5">
+  <label className="block text-[10px] tracking-[0.3em] uppercase text-white/40 mb-2">
+    Confirm Password
+  </label>
+
+  <div className="flex items-center gap-3 border-b border-white/20 pb-2.5">
+    <Lock size={15} className="text-white/40" />
+
+    <input
+      type="password"
+      value={confirmPassword}
+      onChange={(e) =>
+        setConfirmPassword(
+          e.target.value
+        )
+      }
+      placeholder="••••••••"
+      className="bg-transparent outline-none text-white w-full placeholder:text-white/25 text-sm tracking-wide"
+    />
+  </div>
+</div>
           {/* Submit */}
-          <div className="mt-3">
-            <Link href="/login">
-              <button className="w-full bg-[#e7dbd0] text-[#5c1d15] py-4 rounded-full flex items-center justify-between px-7 font-semibold tracking-widest uppercase text-xs hover:bg-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/30">
-                <span>Create Account</span>
-                <div className="w-8 h-8 rounded-full bg-[#5c1d15]/10 flex items-center justify-center">
-                  <ArrowRight size={15} />
-                </div>
-              </button>
-            </Link>
-          </div>
+        <div className="mt-3">
+          <button
+           onClick={handleRegister}
+           disabled={loading}
+           className="w-full bg-[#e7dbd0] text-[#5c1d15] py-4 rounded-full flex items-center justify-between px-7 font-semibold tracking-widest uppercase text-xs hover:bg-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/30"
+           >
+           <span>
+             {loading
+              ? "Creating..."
+             : "Create Account"}
+           </span>
+
+            <div className="w-8 h-8 rounded-full bg-[#5c1d15]/10 flex items-center justify-center">
+              <ArrowRight size={15} />
+            </div>
+          </button>
+        </div>
 
           {/* Login link */}
           <p className="text-center text-white/35 text-[11px] tracking-widest uppercase mt-6">
