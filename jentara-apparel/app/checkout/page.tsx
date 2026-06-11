@@ -33,6 +33,21 @@ export default function CheckoutPage() {
 
   const [placing, setPlacing] =
     useState(false);
+  
+  const [addressLine1, setAddressLine1] =
+  useState("");
+
+const [addressLine2, setAddressLine2] =
+  useState("");
+
+const [city, setCity] =
+  useState("");
+
+const [stateName, setStateName] =
+  useState("");
+
+const [pincode, setPincode] =
+  useState("");
 
   async function placeOrder() {
   try {
@@ -59,14 +74,27 @@ export default function CheckoutPage() {
     } = await supabase
       .from("orders")
       .insert({
-        user_id: user?.id,
+  user_id: user?.id,
 
-        customer_name: name,
-        customer_email: email,
-        customer_phone: phone,
+  customer_name: name,
+  customer_email: email,
+  customer_phone: phone,
 
-        total_amount: getTotal(),
-      })
+  address_line_1:
+    addressLine1,
+
+  address_line_2:
+    addressLine2,
+
+  city,
+
+  state:
+    stateName,
+
+  pincode,
+
+  total_amount: getTotal(),
+})
       .select()
       .single();
 
@@ -206,7 +234,50 @@ if (!user) {
           placeholder="Phone"
           className="border p-4 w-full rounded-lg"
         />
+        <input
+  value={addressLine1}
+  onChange={(e) =>
+    setAddressLine1(e.target.value)
+  }
+  placeholder="Address Line 1"
+  className="border p-4 w-full rounded-lg"
+/>
 
+<input
+  value={addressLine2}
+  onChange={(e) =>
+    setAddressLine2(e.target.value)
+  }
+  placeholder="Address Line 2"
+  className="border p-4 w-full rounded-lg"
+/>
+
+<input
+  value={city}
+  onChange={(e) =>
+    setCity(e.target.value)
+  }
+  placeholder="City"
+  className="border p-4 w-full rounded-lg"
+/>
+
+<input
+  value={stateName}
+  onChange={(e) =>
+    setStateName(e.target.value)
+  }
+  placeholder="State"
+  className="border p-4 w-full rounded-lg"
+/>
+
+<input
+  value={pincode}
+  onChange={(e) =>
+    setPincode(e.target.value)
+  }
+  placeholder="Pincode"
+  className="border p-4 w-full rounded-lg"
+/>
       </div>
 
       <div className="mt-8 text-2xl font-bold">

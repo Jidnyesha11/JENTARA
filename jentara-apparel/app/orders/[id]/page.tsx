@@ -12,14 +12,20 @@ interface OrderItem {
   quantity: number;
 }
 
+interface Order {
+  address_line_1: string;
+  address_line_2: string;
+  city: string;
+  state: string;
+  pincode: string;
+}
+
 export default function OrderDetailsPage() {
   const params = useParams();
 
-  const [items, setItems] =
-    useState<OrderItem[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
+  const [items, setItems] = useState<OrderItem[]>([]);
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadOrder() {
@@ -27,16 +33,27 @@ export default function OrderDetailsPage() {
         await supabase
           .from("order_items")
           .select("*")
-          .eq(
-            "order_id",
-            params.id
-          );
+          .eq("order_id", params.id);
 
       if (error) {
         console.error(error);
       }
 
+      const { data: orderData, error: orderError } =
+        await supabase
+          .from("orders")
+          .select(
+            "address_line_1,address_line_2,city,state,pincode"
+          )
+          .eq("id", params.id)
+          .single();
+
+      if (orderError) {
+        console.error(orderError);
+      }
+
       setItems(data || []);
+      setOrder(orderData || null);
       setLoading(false);
     }
 
@@ -84,6 +101,18 @@ export default function OrderDetailsPage() {
               {" "}
               ₹{item.price}
             </p>
+            
+            {order && (
+              <div className="mt-6">
+                <p>{order.address_line_1}</p>
+                <p>{order.address_line_2}</p>
+                <p>
+                  {order.city},{" "}
+                  {order.state}
+                </p>
+                <p>{order.pincode}</p>
+              </div>
+            )}
           </div>
         ))}
 

@@ -85,6 +85,12 @@ export default function ProfilePage() {
         >
           My Orders
         </Link>
+        
+        <Link
+  href="/profile/addresses"
+>
+  Manage Addresses
+</Link>
 
         <button
           onClick={handleLogout}
