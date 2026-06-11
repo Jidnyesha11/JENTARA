@@ -22,11 +22,7 @@ export default function AddToCartButton({
   return (
     <button
       onClick={() => {
-        console.log("ADDING:", {
-          id,
-          name,
-          price,
-        });
+        console.log("ADDING PRODUCT ID:", id);
 
         addItem({
           id,

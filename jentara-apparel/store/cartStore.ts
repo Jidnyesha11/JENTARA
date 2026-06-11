@@ -125,7 +125,7 @@ export const useCartStore =
           ),
       }),
       {
-        name: "jentara-cart",
+        name: "jentara-cart-v2",
       }
     )
   );

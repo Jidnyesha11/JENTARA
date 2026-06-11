@@ -20,7 +20,7 @@ export default function LoginPage() {
       if (error) {
         throw error;
       }
-      router.push("/profile");
+      router.push("/");
     } catch (error: unknown) {
       if (error instanceof Error) {
         alert(error.message);

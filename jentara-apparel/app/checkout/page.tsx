@@ -35,88 +35,125 @@ export default function CheckoutPage() {
     useState(false);
 
   async function placeOrder() {
-    try {
-        console.log("USER:", user);
-console.log("ITEMS:", items);
-console.log("TOTAL:", getTotal());
-
+  try {
     setPlacing(true);
 
-      const {
-  data: order,
-  error: orderError,
-} = await supabase
-  .from("orders")
-  .insert({
-  user_id: user?.id,
+    console.log(
+      "USER:",
+      JSON.stringify(user, null, 2)
+    );
 
-  customer_name: name,
-  customer_email: email,
-  customer_phone: phone,
+    console.log(
+      "CART FULL:",
+      JSON.stringify(items, null, 2)
+    );
 
-  total_amount: getTotal(),
-})
-  .select()
-  .single();
+    console.log(
+      "TOTAL:",
+      getTotal()
+    );
 
-console.log("ORDER:", order);
-console.log("ORDER ERROR:", orderError);
+    const {
+      data: order,
+      error: orderError,
+    } = await supabase
+      .from("orders")
+      .insert({
+        user_id: user?.id,
 
-if (orderError) {
-  throw orderError;
-}
+        customer_name: name,
+        customer_email: email,
+        customer_phone: phone,
 
-      if (!order) return;
+        total_amount: getTotal(),
+      })
+      .select()
+      .single();
 
-     const payload = items.map((item) => ({
-  order_id: order.id,
-  product_id: item.id,
-  product_name: item.name,
-  price: item.price,
-  quantity: item.quantity,
-}));
+    console.log(
+      "ORDER:",
+      JSON.stringify(order, null, 2)
+    );
 
-console.log(
-  "ORDER ITEMS PAYLOAD:",
-  payload
-);
+    console.log(
+      "ORDER ERROR:",
+      orderError
+    );
 
-const {
-  error: itemError,
-} = await supabase
-  .from("order_items")
-  .insert(payload);
-console.log("ITEM ERROR:", itemError);
-
-if (itemError) {
-  throw itemError;
-}
-console.log(
-  "ORDER ITEMS INSERTED SUCCESSFULLY"
-);
-
-alert(
-  "ORDER CREATED SUCCESSFULLY"
-);
-      clearCart();
-
-      router.push(
-        `/order-success?id=${order.id}`
-      );
-    } 
-    catch (error: unknown) {
-  const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
-  console.error(
-    "PLACE ORDER ERROR:",
-    errorMessage
-  );
-
-  alert(errorMessage);
-}
-    finally {
-      setPlacing(false);
+    if (orderError) {
+      throw orderError;
     }
+
+    if (!order) {
+      throw new Error(
+        "Order was not created"
+      );
+    }
+
+    const payload = items.map(
+      (item) => ({
+        order_id: order.id,
+        product_id: item.id,
+        product_name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })
+    );
+
+    console.log(
+      "ORDER ITEMS PAYLOAD FULL:"
+    );
+
+    payload.forEach(
+      (item, index) => {
+        console.log(
+          `ITEM ${index}:`,
+          JSON.stringify(
+            item,
+            null,
+            2
+          )
+        );
+      }
+    );
+
+    const {
+      error: itemError,
+    } = await supabase
+      .from("order_items")
+      .insert(payload);
+
+    console.log(
+      "ITEM ERROR:",
+      itemError
+    );
+
+    if (itemError) {
+      throw itemError;
+    }
+
+    console.log(
+      "ORDER ITEMS INSERTED SUCCESSFULLY"
+    );
+
+    clearCart();
+
+    router.push(
+      `/order-success?id=${order.id}`
+    );
+  } catch (error: unknown) {
+    console.error(
+      "PLACE ORDER ERROR:",
+      error
+    );
+
+    alert(
+      JSON.stringify(error)
+    );
+  } finally {
+    setPlacing(false);
   }
+}
     useEffect(() => {
   if (!loading && !user) {
     router.push("/login");
