@@ -1,11 +1,14 @@
 import { supabase } from "./client";
 
-export async function getCategories() {
+export async function getProfile(
+  userId: string
+) {
   const { data, error } =
     await supabase
-      .from("categories")
+      .from("profiles")
       .select("*")
-      .order("name");
+      .eq("id", userId)
+      .single();
 
   if (error) {
     throw error;

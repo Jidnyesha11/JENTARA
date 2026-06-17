@@ -14,6 +14,29 @@ interface Order {
   created_at: string;
 }
 
+function getStatusColor(
+  status: string
+) {
+  switch (status) {
+    case "pending":
+      return "bg-yellow-100 text-yellow-700";
+
+    case "processing":
+      return "bg-blue-100 text-blue-700";
+
+    case "shipped":
+      return "bg-purple-100 text-purple-700";
+
+    case "delivered":
+      return "bg-green-100 text-green-700";
+
+    case "cancelled":
+      return "bg-red-100 text-red-700";
+
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+}
 export default function OrdersPage() {
   const router = useRouter();
 
@@ -97,7 +120,23 @@ export default function OrdersPage() {
                   order.created_at
                 ).toLocaleDateString()}
               </p>
-
+              
+              <div className="mt-3">
+  <span
+    className={`
+      px-3
+      py-1
+      rounded-full
+      text-sm
+      font-medium
+      ${getStatusColor(
+        order.status
+      )}
+    `}
+  >
+    {order.status}
+  </span>
+</div>
               <Link
                 href={`/orders/${order.id}`}
                 className="

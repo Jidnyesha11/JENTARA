@@ -128,6 +128,8 @@ export default function CheckoutPage() {
 
           total_amount:
             getTotal(),
+
+          status: "pending",
         })
         .select()
         .single();
