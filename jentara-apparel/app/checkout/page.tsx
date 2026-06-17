@@ -23,8 +23,7 @@ interface Address {
 export default function CheckoutPage() {
   const router = useRouter();
 
-  const { user, loading } =
-    useAuth();
+  const { user, loading } = useAuth();
 
   const items = useCartStore(
     (state) => state.items
@@ -39,34 +38,32 @@ export default function CheckoutPage() {
   );
 
   const [address, setAddress] =
-    useState<Address | null>(
-      null
-    );
+    useState<Address | null>(null);
 
   const [placing, setPlacing] =
     useState(false);
 
   useEffect(() => {
-  if (!loading && !user) {
-    router.push("/login");
-    return;
-  }
-
-  if (!user) return;
-
-  (async () => {
-    try {
-      const data =
-        await getDefaultAddress(
-          user.id
-        );
-
-      setAddress(data);
-    } catch (error) {
-      console.error(error);
+    if (!loading && !user) {
+      router.push("/login");
+      return;
     }
-  })();
-}, [user, loading, router]);
+
+    if (!user) return;
+
+    (async () => {
+      try {
+        const data =
+          await getDefaultAddress(
+            user.id
+          );
+
+        setAddress(data);
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+  }, [user, loading, router]);
 
   async function placeOrder() {
     if (!user) return;
@@ -99,8 +96,7 @@ export default function CheckoutPage() {
         .insert({
           user_id: user.id,
 
-          address_id:
-            address.id,
+          address_id: address.id,
 
           customer_name:
             address.full_name,
@@ -117,11 +113,9 @@ export default function CheckoutPage() {
           address_line_2:
             address.address_line_2,
 
-          city:
-            address.city,
+          city: address.city,
 
-          state:
-            address.state,
+          state: address.state,
 
           pincode:
             address.pincode,
@@ -134,9 +128,8 @@ export default function CheckoutPage() {
         .select()
         .single();
 
-      if (orderError) {
+      if (orderError)
         throw orderError;
-      }
 
       if (!order) {
         throw new Error(
@@ -148,14 +141,12 @@ export default function CheckoutPage() {
         items.map((item) => ({
           order_id: order.id,
 
-          product_id:
-            item.id,
+          product_id: item.id,
 
           product_name:
             item.name,
 
-          price:
-            item.price,
+          price: item.price,
 
           quantity:
             item.quantity,
@@ -167,9 +158,8 @@ export default function CheckoutPage() {
         .from("order_items")
         .insert(payload);
 
-      if (itemError) {
+      if (itemError)
         throw itemError;
-      }
 
       clearCart();
 
@@ -189,111 +179,217 @@ export default function CheckoutPage() {
 
   if (loading) {
     return (
-      <div className="p-20">
+      <div className="min-h-screen flex items-center justify-center text-xl">
         Loading...
       </div>
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-16">
-      <h1 className="text-4xl font-bold mb-10">
-        Checkout
-      </h1>
+    <div className="min-h-screen bg-[#f8f5f2] py-12 px-6">
 
-      {!address ? (
-        <div className="border rounded-xl p-6">
-          <p className="mb-4">
-            No default address found
+      <div className="max-w-7xl mx-auto">
+
+        {/* Header */}
+        <div className="mb-12">
+
+          <h1 className="text-5xl font-bold text-[#4a0f0f]">
+            Checkout
+          </h1>
+
+          <p className="text-gray-500 mt-2">
+            Complete your order securely.
           </p>
 
-          <button
-            onClick={() =>
-              router.push(
-                "/profile/addresses"
-              )
-            }
-            className="
-              bg-black
-              text-white
-              px-6
-              py-3
-              rounded-lg
-            "
-          >
-            Add Address
-          </button>
         </div>
-      ) : (
-        <div className="border rounded-xl p-6">
-          <div className="inline-block bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full mb-4">
-            Default Address
+
+        <div className="grid lg:grid-cols-3 gap-10">
+
+          {/* Address Section */}
+          <div className="lg:col-span-2">
+
+            {!address ? (
+              <div className="bg-white rounded-3xl shadow-md p-8">
+
+                <h2 className="text-2xl font-bold mb-4">
+                  Delivery Address
+                </h2>
+
+                <p className="text-gray-500 mb-6">
+                  No default address found.
+                </p>
+
+                <button
+                  onClick={() =>
+                    router.push(
+                      "/profile/addresses"
+                    )
+                  }
+                  className="
+                    bg-[#4a0f0f]
+                    text-white
+                    px-8
+                    py-4
+                    rounded-xl
+                    hover:bg-[#5d1818]
+                    transition
+                  "
+                >
+                  Add Address
+                </button>
+
+              </div>
+            ) : (
+              <div className="bg-white rounded-3xl shadow-md p-8">
+
+                <div className="flex items-center justify-between mb-6">
+
+                  <h2 className="text-2xl font-bold">
+                    Delivery Address
+                  </h2>
+
+                  <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full">
+                    Default Address
+                  </span>
+
+                </div>
+
+                <h3 className="text-xl font-semibold">
+                  {address.full_name}
+                </h3>
+
+                <p className="text-gray-600 mt-2">
+                  {address.phone}
+                </p>
+
+                <div className="mt-4 text-gray-600 space-y-1">
+
+                  <p>
+                    {address.address_line_1}
+                  </p>
+
+                  <p>
+                    {address.address_line_2}
+                  </p>
+
+                  <p>
+                    {address.city},{" "}
+                    {address.state}
+                  </p>
+
+                  <p>
+                    {address.pincode}
+                  </p>
+
+                </div>
+
+                <button
+                  onClick={() =>
+                    router.push(
+                      "/profile/addresses"
+                    )
+                  }
+                  className="
+                    mt-6
+                    text-[#4a0f0f]
+                    font-semibold
+                    hover:underline
+                  "
+                >
+                  Change Address
+                </button>
+
+              </div>
+            )}
+
           </div>
 
-          <h3 className="text-xl font-bold">
-            {address.full_name}
-          </h3>
+          {/* Order Summary */}
+          <div>
 
-          <p>{address.phone}</p>
+            <div className="bg-white rounded-3xl shadow-md p-8 sticky top-10">
 
-          <p className="mt-4">
-            {address.address_line_1}
-          </p>
+              <h2 className="text-3xl font-bold mb-8">
+                Order Summary
+              </h2>
 
-          <p>
-            {address.address_line_2}
-          </p>
+              <div className="space-y-4">
 
-          <p>
-            {address.city},{" "}
-            {address.state}
-          </p>
+                <div className="flex justify-between">
+                  <span>Total Items</span>
+                  <span>
+                    {items.length}
+                  </span>
+                </div>
 
-          <p>
-            {address.pincode}
-          </p>
+                <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span className="text-green-600">
+                    Free
+                  </span>
+                </div>
 
-          <button
-            onClick={() =>
-              router.push(
-                "/profile/addresses"
-              )
-            }
-            className="
-              mt-4
-              text-blue-600
-              font-medium
-            "
-          >
-            Change Address
-          </button>
+                <div className="flex justify-between">
+                  <span>Tax</span>
+                  <span>Included</span>
+                </div>
+
+              </div>
+
+              <div className="border-t mt-6 pt-6">
+
+                <div className="flex justify-between text-2xl font-bold">
+
+                  <span>Total</span>
+
+                  <span className="text-[#4a0f0f]">
+                    ₹{getTotal()}
+                  </span>
+
+                </div>
+
+              </div>
+
+              <button
+                onClick={placeOrder}
+                disabled={placing}
+                className="
+                  w-full
+                  mt-8
+                  bg-[#4a0f0f]
+                  text-white
+                  py-4
+                  rounded-xl
+                  text-lg
+                  font-semibold
+                  hover:bg-[#5d1818]
+                  transition
+                  disabled:opacity-50
+                "
+              >
+                {placing
+                  ? "Placing Order..."
+                  : "Place Order"}
+              </button>
+
+              <div className="mt-6 text-sm text-gray-500 space-y-2">
+
+                <p>🔒 Secure Checkout</p>
+                <p>🚚 Free Shipping</p>
+                <p>↩️ Easy Returns</p>
+
+              </div>
+
+            </div>
+
+          </div>
+
         </div>
-      )}
 
-      <div className="mt-8 text-2xl font-bold">
-        Total: ₹{getTotal()}
       </div>
 
-      <button
-        onClick={placeOrder}
-        disabled={placing}
-        className="
-          mt-8
-          bg-black
-          text-white
-          px-8
-          py-4
-          rounded-lg
-        "
-      >
-        {placing
-          ? "Placing Order..."
-          : "Place Order"}
-      </button>
     </div>
   );
 }
