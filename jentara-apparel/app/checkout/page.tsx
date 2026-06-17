@@ -59,9 +59,28 @@ export default function CheckoutPage() {
           );
 
         setAddress(data);
-      } catch (error) {
-        console.error(error);
-      }
+      } catch (error: unknown) {
+  const err = error instanceof Error ? error : new Error(String(error));
+  console.error(
+    "PLACE ORDER ERROR:",
+    err
+  );
+
+  console.error(
+    "MESSAGE:",
+    err.message
+  );
+
+  console.error(
+    "FULL:",
+    JSON.stringify(error)
+  );
+
+  alert(
+    err.message ??
+      JSON.stringify(error)
+  );
+}
     })();
   }, [user, loading, router]);
 

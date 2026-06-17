@@ -38,7 +38,6 @@ export default function AdminPage() {
 
       setIsAdmin(true);
     }
-
     checkAdmin();
   }, [user, router]);
 

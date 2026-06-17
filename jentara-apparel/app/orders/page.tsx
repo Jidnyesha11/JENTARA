@@ -14,29 +14,6 @@ interface Order {
   created_at: string;
 }
 
-function getStatusColor(
-  status: string
-) {
-  switch (status) {
-    case "pending":
-      return "bg-yellow-100 text-yellow-700";
-
-    case "processing":
-      return "bg-blue-100 text-blue-700";
-
-    case "shipped":
-      return "bg-purple-100 text-purple-700";
-
-    case "delivered":
-      return "bg-green-100 text-green-700";
-
-    case "cancelled":
-      return "bg-red-100 text-red-700";
-
-    default:
-      return "bg-gray-100 text-gray-700";
-  }
-}
 export default function OrdersPage() {
   const router = useRouter();
 
@@ -195,31 +172,33 @@ export default function OrdersPage() {
 
                     </div>
 
-              <p>
-                <strong>Date:</strong>{" "}
-                {new Date(
-                  order.created_at
-                ).toLocaleDateString()}
-              </p>
+                    <p>
+                      <strong>Date:</strong>{" "}
+                      {new Date(order.created_at).toLocaleDateString()}
+                    </p>
 
-              <Link
-                href={`/orders/${order.id}`}
-                className="
-                  inline-block
-                  mt-4
-                  bg-black
-                  text-white
-                  px-4
-                  py-2
-                  rounded-lg
-                "
-              >
-                View Details
-              </Link>
-            </div>
-          ))}
+                    <Link
+                      href={`/orders/${order.id}`}
+                      className="
+                        inline-block
+                        mt-4
+                        bg-black
+                        text-white
+                        px-4
+                        py-2
+                        rounded-lg
+                      "
+                    >
+                      View Details
+                    </Link>
+
+                  </div>
+                </div>
+              </div>
+            ))}
         </div>
       )}
     </div>
+  </div>
   );
 }

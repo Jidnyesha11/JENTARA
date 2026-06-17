@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { useCartStore } from "@/store/cartStore";
 
 interface Props {
@@ -15,28 +17,35 @@ export default function AddToCartButton({
   price,
   image_url,
 }: Props) {
-  const addItem = useCartStore(
-    (state) => state.addItem
-  );
+  const router = useRouter();
+
+  const addItem =
+    useCartStore(
+      (state) => state.addItem
+    );
+
+  function handleAddToCart() {
+    addItem({
+      id,
+      name,
+      price,
+      image_url,
+    });
+
+    router.push("/cart");
+  }
 
   return (
     <button
-      onClick={() => {
-        console.log("ADDING PRODUCT ID:", id);
-
-        addItem({
-          id,
-          name,
-          price,
-          image_url,
-        });
-
-        console.log(
-          "STORE:",
-          useCartStore.getState().items
-        );
-      }}
-      className="mt-8 bg-black text-white px-8 py-4 rounded-lg"
+      onClick={handleAddToCart}
+      className="
+        mt-8
+        bg-black
+        text-white
+        px-8
+        py-4
+        rounded-lg
+      "
     >
       Add To Cart
     </button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Heart } from "lucide-react";
+
 import { useWishlistStore } from "@/store/wishlistStore";
 
 interface Props {
@@ -20,20 +21,57 @@ export default function AddToWishlistButton({
       (state) => state.addItem
     );
 
+  const removeItem =
+    useWishlistStore(
+      (state) => state.removeItem
+    );
+
+  const isWishlisted =
+    useWishlistStore(
+      (state) =>
+        state.isWishlisted(
+          product.id
+        )
+    );
+
+  function handleWishlist() {
+    if (isWishlisted) {
+      removeItem(product.id);
+      return;
+    }
+
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image_url:
+        product.image_url || "",
+    });
+  }
+
   return (
     <button
-      onClick={() =>
-        addItem({
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          image_url:
-            product.image_url || "",
-        })
-      }
-      className="border rounded-lg px-4 py-3"
+      onClick={handleWishlist}
+      className="
+        border
+        rounded-lg
+        px-4
+        py-3
+      "
     >
-      <Heart size={18} />
+      <Heart
+        size={20}
+        fill={
+          isWishlisted
+            ? "red"
+            : "none"
+        }
+        color={
+          isWishlisted
+            ? "red"
+            : "black"
+        }
+      />
     </button>
   );
 }

@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { useCartStore } from "@/store/cartStore";
-import { useWishlistStore } from "@/store/wishlistStore";
+import AddToWishlistButton from "./AddToWishlistButton";
 
 interface Product {
   id: string;
@@ -26,10 +26,7 @@ export default function ProductCard({
     (state) => state.addItem
   );
 
-  const addWishlist =
-    useWishlistStore(
-      (state) => state.addItem
-    );
+  const router = useRouter();
 
   return (
     <div
@@ -112,44 +109,39 @@ export default function ProductCard({
         "
         >
           <button
-            onClick={() =>
-              addItem({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image_url:
-                  product.image_url,
-              })
-            }
-            className="
-              flex-1
-              bg-black
-              text-white
-              py-3
-              rounded-lg
-            "
-          >
-            Add To Cart
-          </button>
+  onClick={() => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image_url:
+        product.image_url,
+    });
 
-          <button
-            onClick={() =>
-              addWishlist({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image_url:
-                  product.image_url,
-              })
-            }
-            className="
-              border
-              px-4
-              rounded-lg
-            "
-          >
-            <Heart size={18} />
-          </button>
+    router.push("/cart");
+  }}
+  className="
+    flex-1
+    border
+    border-black
+    bg-black
+    text-white
+    px-4
+    py-3
+    rounded-lg
+    font-medium
+    transition-all
+    duration-300
+    hover:bg-white
+    hover:text-black
+  "
+>
+  Add To Cart
+</button>
+
+          <AddToWishlistButton
+  product={product}
+/>
         </div>
 
       </div>

@@ -10,6 +10,8 @@ import {
   deleteProduct,
 } from "@/lib/supabase/admin-products";
 
+import Link from "next/link";
+
 type Product = {
   id: string;
   name: string;
@@ -145,17 +147,18 @@ export default function AdminProductsPage() {
                 </p>
 
                 <div className="mt-4 flex gap-4">
-                  <button
-                    className="
-                      bg-black
-                      text-white
-                      px-4
-                      py-2
-                      rounded-lg
-                    "
-                  >
-                    Edit
-                  </button>
+                  <Link
+  href={`/admin/products/edit/${product.id}`}
+  className="
+    bg-black
+    text-white
+    px-4
+    py-2
+    rounded-lg
+  "
+>
+  Edit
+</Link>
 
                   <button
                     onClick={() =>
