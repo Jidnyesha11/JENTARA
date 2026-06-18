@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Heart } from "lucide-react";
 
 import { useWishlistStore } from "@/store/wishlistStore";
@@ -16,6 +17,9 @@ interface Props {
 export default function AddToWishlistButton({
   product,
 }: Props) {
+  const [mounted, setMounted] =
+    useState(false);
+
   const addItem =
     useWishlistStore(
       (state) => state.addItem
@@ -33,6 +37,33 @@ export default function AddToWishlistButton({
           product.id
         )
     );
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setMounted(true);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  if (!mounted) {
+    return (
+      <button
+        className="
+          border
+          rounded-lg
+          px-4
+          py-3
+        "
+      >
+        <Heart
+          size={20}
+        />
+      </button>
+    );
+  }
 
   function handleWishlist() {
     if (isWishlisted) {

@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+import Image from "next/image";
+import {
+  uploadProductImage,
+} from "@/lib/supabase/storage";
 import { getCategories } from "@/lib/supabase/categories";
 import { createProduct } from "@/lib/supabase/admin-products";
 
@@ -43,6 +46,14 @@ export default function AddProductPage() {
 
   const [featured, setFeatured] =
     useState(false);
+
+  const [imageFile, setImageFile] =
+  useState<File | null>(
+    null
+  );
+
+  const [previewUrl, setPreviewUrl] =
+  useState("");
 
     useEffect(() => {
   getCategories()
@@ -88,6 +99,16 @@ export default function AddProductPage() {
         stock,
         featured,
       });
+      
+      let uploadedImageUrl =
+  "";
+
+if (imageFile) {
+  uploadedImageUrl =
+    await uploadProductImage(
+      imageFile
+    );
+}
 
       await createProduct({
         name,
@@ -104,7 +125,7 @@ export default function AddProductPage() {
           categoryId,
 
         image_url:
-          imageUrl,
+          uploadedImageUrl,
 
         sizes,
 
@@ -239,15 +260,43 @@ export default function AddProductPage() {
         </select>
 
         <input
-          placeholder="Image URL"
-          value={imageUrl}
-          onChange={(e) =>
-            setImageUrl(
-              e.target.value
-            )
-          }
-          className="border p-4 w-full rounded-lg"
-        />
+  type="file"
+  accept="image/*"
+  onChange={(e) => {
+  const file =
+    e.target.files?.[0];
+
+  if (!file) return;
+
+  setImageFile(file);
+
+  setPreviewUrl(
+    URL.createObjectURL(file)
+  );
+}}
+  className="
+    border
+    p-4
+    w-full
+    rounded-lg
+  "
+/>
+
+{previewUrl && (
+  <Image
+    src={previewUrl}
+    alt="Preview"
+    width={192}
+    height={192}
+    className="
+      w-48
+      h-48
+      object-cover
+      rounded-xl
+      border
+    "
+  />
+)}
 
         <input
           placeholder="Sizes (S,M,L,XL)"

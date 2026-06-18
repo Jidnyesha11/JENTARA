@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "th.bing.com",
       },
+      {
+        protocol: "https",
+        hostname:
+          "byqfrpzoiwgdkrbwgais.supabase.co",
+      },
     ],
   },
 };

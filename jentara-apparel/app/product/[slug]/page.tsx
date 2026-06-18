@@ -2,7 +2,12 @@ import { getProductBySlug } from "@/lib/supabase/products";
 import { notFound } from "next/navigation";
 import AddToCartButton from "./AddToCartButton";
 import AddToWishlistButton from "@/components/products/AddToWishlistButton";
-import Image from "next/image";
+import ProductGallery
+from "@/components/products/ProductGallery";
+
+import {
+  getProductImages,
+} from "@/lib/supabase/product-images";
 
 interface Props {
   params: Promise<{
@@ -16,6 +21,11 @@ export default async function ProductPage({
   const { slug } = await params;
 
   const product = await getProductBySlug(slug);
+
+const galleryImages =
+  await getProductImages(
+    product.id
+  );
 
   if (!product) {
     notFound();
@@ -35,18 +45,17 @@ export default async function ProductPage({
 
             <div className="aspect-square relative">
 
-              {product.image_url ? (
-                <Image
-                  src={product.image_url}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-neutral-200 flex items-center justify-center">
-                  No Image
-                </div>
-              )}
+              <ProductGallery
+  mainImage={
+    product.image_url
+  }
+  galleryImages={
+    galleryImages ?? []
+  }
+  productName={
+    product.name
+  }
+/>
 
             </div>
 

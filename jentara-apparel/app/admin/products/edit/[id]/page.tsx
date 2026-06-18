@@ -5,10 +5,20 @@ import {
   useState,
 } from "react";
 
+import Image from "next/image";
+
+import {
+  uploadGalleryImage,
+} from "@/lib/supabase/product-images";
+
 import {
   getProductById,
   updateProduct,
 } from "@/lib/supabase/admin-products";
+
+import {
+  uploadProductImage,
+} from "@/lib/supabase/storage";
 
 interface Props {
   params: Promise<{
@@ -34,38 +44,94 @@ export default function EditProductPage({
   const [featured, setFeatured] =
     useState(false);
 
+  const [imageUrl, setImageUrl] =
+    useState("");
+
+  const [imageFile, setImageFile] =
+    useState<File | null>(
+      null
+    );
+
+  const [previewUrl, setPreviewUrl] =
+    useState("");
+
+  const [
+  galleryFiles,
+  setGalleryFiles,
+] = useState<File[]>([]);
+
   useEffect(() => {
+    let mounted = true;
+
     (async () => {
-      const { id } =
-        await params;
+      try {
+        const { id } =
+          await params;
 
-      setProductId(id);
+        const product =
+          await getProductById(id);
 
-      const product =
-        await getProductById(id);
+        if (!mounted) {
+          return;
+        }
 
-      setName(product.name);
+        setProductId(id);
 
-      setPrice(
-        String(product.price)
-      );
+        setName(
+          product.name ?? ""
+        );
 
-      setStock(
-        String(product.stock)
-      );
+        setPrice(
+          String(
+            product.price ?? 0
+          )
+        );
 
-      setFeatured(
-        product.featured
-      );
+        setStock(
+          String(
+            product.stock ?? 0
+          )
+        );
+
+        setFeatured(
+          product.featured ??
+            false
+        );
+
+        setImageUrl(
+          product.image_url ??
+            ""
+        );
+      } catch (error) {
+        console.error(
+          "LOAD PRODUCT ERROR:",
+          error
+        );
+      }
     })();
+
+    return () => {
+      mounted = false;
+    };
   }, [params]);
 
   async function handleSave() {
     try {
+      let uploadedImageUrl =
+        imageUrl;
+
+      if (imageFile) {
+        uploadedImageUrl =
+          await uploadProductImage(
+            imageFile
+          );
+      }
+
       await updateProduct(
         productId,
         {
           name,
+
           price:
             Number(price),
 
@@ -73,20 +139,29 @@ export default function EditProductPage({
             Number(stock),
 
           featured,
+
+          image_url:
+            uploadedImageUrl,
         }
       );
+      // upload gallery images after product update
+      for (const file of galleryFiles) {
+        await uploadGalleryImage(productId, file);
+      }
 
-      alert(
-        "Product Updated"
-      );
+      alert("Product Updated Successfully");
     } catch (error) {
-      console.error(error);
+      console.error(
+        "UPDATE PRODUCT ERROR:",
+        error
+      );
 
       alert(
         "Failed To Update Product"
       );
     }
   }
+
 
   return (
     <div className="container-custom py-20">
@@ -95,6 +170,83 @@ export default function EditProductPage({
       </h1>
 
       <div className="space-y-4 max-w-2xl">
+
+        {(previewUrl ||
+          imageUrl) && (
+          <Image
+            src={
+              previewUrl ||
+              imageUrl
+            }
+            alt={name}
+            width={250}
+            height={250}
+            className="
+              rounded-xl
+              border
+              object-cover
+            "
+          />
+        )}
+        
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file =
+              e.target
+                .files?.[0];
+
+            if (!file) {
+              return;
+            }
+
+            setImageFile(
+              file
+            );
+
+            setPreviewUrl(
+              URL.createObjectURL(
+                file
+              )
+            );
+          }}
+          className="
+            border
+            p-4
+            w-full
+            rounded-lg
+          "
+        />
+        
+        <div className="space-y-2">
+  <label className="font-medium">
+    Gallery Images
+  </label>
+
+  <input
+    type="file"
+    multiple
+    accept="image/*"
+    onChange={(e) => {
+      const files =
+        Array.from(
+          e.target.files ?? []
+        );
+
+      setGalleryFiles(
+        files
+      );
+    }}
+    className="
+      border
+      p-4
+      w-full
+      rounded-lg
+    "
+  />
+</div>
+
         <input
           value={name}
           onChange={(e) =>
@@ -102,7 +254,13 @@ export default function EditProductPage({
               e.target.value
             )
           }
-          className="border p-4 w-full rounded-lg"
+          placeholder="Product Name"
+          className="
+            border
+            p-4
+            w-full
+            rounded-lg
+          "
         />
 
         <input
@@ -113,7 +271,13 @@ export default function EditProductPage({
               e.target.value
             )
           }
-          className="border p-4 w-full rounded-lg"
+          placeholder="Price"
+          className="
+            border
+            p-4
+            w-full
+            rounded-lg
+          "
         />
 
         <input
@@ -124,13 +288,21 @@ export default function EditProductPage({
               e.target.value
             )
           }
-          className="border p-4 w-full rounded-lg"
+          placeholder="Stock"
+          className="
+            border
+            p-4
+            w-full
+            rounded-lg
+          "
         />
 
-        <label className="flex gap-3">
+        <label className="flex items-center gap-3">
           <input
             type="checkbox"
-            checked={featured}
+            checked={
+              featured
+            }
             onChange={(e) =>
               setFeatured(
                 e.target.checked
@@ -138,7 +310,7 @@ export default function EditProductPage({
             }
           />
 
-          Featured
+          Featured Product
         </label>
 
         <button
@@ -153,6 +325,7 @@ export default function EditProductPage({
         >
           Save Changes
         </button>
+
       </div>
     </div>
   );

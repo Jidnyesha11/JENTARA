@@ -7,10 +7,20 @@ import {
 
 import {
   getAllProducts,
-  deleteProduct,
 } from "@/lib/supabase/admin-products";
 
 import Link from "next/link";
+import Image from "next/image";
+import AdminNavbar from "@/components/admin/AdminNavbar";
+
+import {
+  getProductById,
+  deleteProduct,
+} from "@/lib/supabase/admin-products";
+
+import {
+  deleteProductImage,
+} from "@/lib/supabase/storage";
 
 type Product = {
   id: string;
@@ -18,6 +28,7 @@ type Product = {
   price: number;
   stock: number;
   featured: boolean;
+  image_url: string;
 };
 
 export default function AdminProductsPage() {
@@ -39,37 +50,49 @@ export default function AdminProductsPage() {
   }
 
   async function handleDelete(
-    id: string
-  ) {
-    try {
-      const confirmed =
-        window.confirm(
-          "Delete Product?"
-        );
-
-      if (!confirmed) {
-        return;
-      }
-
-      await deleteProduct(id);
-
-      await loadProducts();
-
-      alert(
-        "Product Deleted Successfully"
-      );
-    } catch (error) {
-      console.error(
-        "DELETE PRODUCT ERROR:",
-        error
+  id: string
+) {
+  try {
+    const confirmed =
+      window.confirm(
+        "Delete Product?"
       );
 
-      alert(
-        "Failed To Delete Product"
+    if (!confirmed) {
+      return;
+    }
+
+    const product =
+      await getProductById(
+        id
+      );
+
+    if (
+      product?.image_url
+    ) {
+      await deleteProductImage(
+        product.image_url
       );
     }
-  }
 
+    await deleteProduct(id);
+
+    await loadProducts();
+
+    alert(
+      "Product Deleted Successfully"
+    );
+  } catch (error) {
+    console.error(
+      "DELETE PRODUCT ERROR:",
+      error
+    );
+
+    alert(
+      "Failed To Delete Product"
+    );
+  }
+}
   useEffect(() => {
   let mounted = true;
 
@@ -96,6 +119,8 @@ export default function AdminProductsPage() {
       <h1 className="text-5xl font-bold mb-10">
         Manage Products
       </h1>
+
+      <AdminNavbar />
 
       <div className="space-y-6">
         {products.length === 0 ? (
@@ -145,6 +170,18 @@ export default function AdminProductsPage() {
                     ? "Yes"
                     : "No"}
                 </p>
+
+                {product.image_url && (
+                  <div className="mt-4">
+                    <Image
+                      src={product.image_url}
+                      alt={product.name}
+                      width={192}
+                      height={192}
+                      className="w-48 h-48 object-cover rounded-xl border"
+                    />
+                  </div>
+                )}
 
                 <div className="mt-4 flex gap-4">
                   <Link
