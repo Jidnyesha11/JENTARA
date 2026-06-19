@@ -7,6 +7,8 @@ import {
 
 import {
   getAllProducts,
+  exportProducts,
+  createProduct,
 } from "@/lib/supabase/admin-products";
 
 import Link from "next/link";
@@ -34,6 +36,11 @@ type Product = {
 export default function AdminProductsPage() {
   const [products, setProducts] =
     useState<Product[]>([]);
+
+  const [csvFile, setCsvFile] =
+  useState<File | null>(
+    null
+  );
 
   async function loadProducts() {
     try {
@@ -114,6 +121,117 @@ export default function AdminProductsPage() {
   };
 }, []);
 
+async function handleImport() {
+  if (!csvFile) return;
+
+  const text =
+    await csvFile.text();
+
+  const rows =
+    text.split("\n");
+
+  const data =
+    rows
+      .slice(1)
+      .filter(Boolean)
+      .map((row) => {
+        const [
+          name,
+          slug,
+          price,
+          stock,
+        ] = row.split(",");
+
+        return {
+          name,
+          slug,
+          price:
+            Number(price),
+          stock:
+            Number(stock),
+        };
+      });
+
+  for (const product of data) {
+    await createProduct({
+      ...product,
+      description: "",
+      image_url: "",
+      category_id: "",
+      original_price:
+        product.price,
+      sizes: "",
+      featured: false,
+    });
+  }
+
+  await loadProducts();
+
+  alert(
+    "Products Imported"
+  );
+}
+async function handleExport() {
+  try {
+    const products =
+      await exportProducts();
+
+    const csvRows = [
+      [
+        "name",
+        "slug",
+        "price",
+        "stock",
+      ].join(","),
+    ];
+
+    products.forEach(
+      (product) => {
+        csvRows.push(
+          [
+            product.name,
+            product.slug,
+            product.price,
+            product.stock,
+          ].join(",")
+        );
+      }
+    );
+
+    const csv =
+      csvRows.join("\n");
+
+    const blob =
+      new Blob([csv], {
+        type:
+          "text/csv",
+      });
+
+    const url =
+      URL.createObjectURL(
+        blob
+      );
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+    link.href = url;
+
+    link.download =
+      "products.csv";
+
+    link.click();
+
+    URL.revokeObjectURL(
+      url
+    );
+  } catch (error) {
+    console.error(error);
+  }
+}
+
   return (
     <div className="container-custom py-20">
       <h1 className="text-5xl font-bold mb-10">
@@ -121,6 +239,52 @@ export default function AdminProductsPage() {
       </h1>
 
       <AdminNavbar />
+       
+       <input
+  type="file"
+  accept=".csv"
+  onChange={(e) =>
+    setCsvFile(
+      e.target.files?.[0] ??
+        null
+    )
+  }
+  className="
+    border
+    p-3
+    rounded-lg
+    mb-4
+    block
+  "
+/>
+
+      <button
+  onClick={handleExport}
+  className="
+    bg-black
+    text-white
+    px-6
+    py-3
+    rounded-lg
+    mb-6
+  "
+>
+  Export Products
+</button>
+
+<button
+  onClick={handleImport}
+  className="
+    bg-green-600
+    text-white
+    px-6
+    py-3
+    rounded-lg
+    ml-4
+  "
+>
+  Import Products
+</button>
 
       <div className="space-y-6">
         {products.length === 0 ? (

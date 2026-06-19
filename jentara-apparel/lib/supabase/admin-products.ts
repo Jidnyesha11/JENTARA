@@ -89,3 +89,16 @@ export async function deleteProduct(
     throw error;
   }
 }
+
+export async function exportProducts() {
+  const { data, error } =
+    await supabase
+      .from("products")
+      .select("*");
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}

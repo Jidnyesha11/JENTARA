@@ -7,6 +7,7 @@ import {
 } from "@/lib/supabase/storage";
 import { getCategories } from "@/lib/supabase/categories";
 import { createProduct } from "@/lib/supabase/admin-products";
+import { useRouter } from "next/navigation";
 
 interface Category {
   id: string;
@@ -14,6 +15,8 @@ interface Category {
 }
 
 export default function AddProductPage() {
+  const router = useRouter();
+
   const [categories, setCategories] =
     useState<Category[]>([]);
 
@@ -38,8 +41,10 @@ export default function AddProductPage() {
   const [imageUrl, setImageUrl] =
     useState("");
 
-  const [sizes, setSizes] =
-    useState("");
+  const [
+  selectedSizes,
+  setSelectedSizes,
+] = useState<string[]>([]);
 
   const [stock, setStock] =
     useState("");
@@ -95,7 +100,8 @@ export default function AddProductPage() {
         originalPrice,
         categoryId,
         imageUrl,
-        sizes,
+        sizes:
+  selectedSizes.join(","),
         stock,
         featured,
       });
@@ -110,7 +116,8 @@ if (imageFile) {
     );
 }
 
-      await createProduct({
+      const product =
+  await createProduct({
         name,
         slug,
         description,
@@ -127,7 +134,8 @@ if (imageFile) {
         image_url:
           uploadedImageUrl,
 
-        sizes,
+        sizes:
+  selectedSizes.join(","),
 
         stock:
           Number(stock),
@@ -135,9 +143,9 @@ if (imageFile) {
         featured,
       });
 
-      alert(
-        "Product Created Successfully"
-      );
+      router.push(
+  `/product/${product.slug}`
+);
 
       setName("");
       setSlug("");
@@ -146,7 +154,7 @@ if (imageFile) {
       setOriginalPrice("");
       setCategoryId("");
       setImageUrl("");
-      setSizes("");
+      setSelectedSizes([]);
       setStock("");
       setFeatured(false);
     } catch (error: unknown) {
@@ -298,16 +306,61 @@ if (imageFile) {
   />
 )}
 
+        <div className="space-y-3">
+  <label className="font-medium">
+    Available Sizes
+  </label>
+
+  <div className="flex flex-wrap gap-4">
+
+    {[
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+    ].map((size) => (
+      <label
+        key={size}
+        className="
+          flex
+          items-center
+          gap-2
+        "
+      >
         <input
-          placeholder="Sizes (S,M,L,XL)"
-          value={sizes}
-          onChange={(e) =>
-            setSizes(
-              e.target.value
-            )
-          }
-          className="border p-4 w-full rounded-lg"
+          type="checkbox"
+          checked={selectedSizes.includes(
+            size
+          )}
+          onChange={() => {
+            if (
+              selectedSizes.includes(
+                size
+              )
+            ) {
+              setSelectedSizes(
+                selectedSizes.filter(
+                  (s) =>
+                    s !== size
+                )
+              );
+            } else {
+              setSelectedSizes([
+                ...selectedSizes,
+                size,
+              ]);
+            }
+          }}
         />
+
+        {size}
+      </label>
+    ))}
+
+  </div>
+</div>
 
         <input
           type="number"

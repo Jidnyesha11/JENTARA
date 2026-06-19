@@ -6,24 +6,28 @@ import { usePathname } from "next/navigation";
 export default function AdminNavbar() {
   const pathname = usePathname();
 
-  const links = [
-    {
-      name: "Dashboard",
-      href: "/admin",
-    },
-    {
-      name: "Products",
-      href: "/admin/products",
-    },
-    {
-      name: "Orders",
-      href: "/admin/orders",
-    },
-    {
-      name: "Customers",
-      href: "/admin/customers",
-    },
-  ];
+ const links = [
+  {
+    name: "Dashboard",
+    href: "/admin",
+  },
+  {
+    name: "Products",
+    href: "/admin/products",
+  },
+  {
+    name: "Add Product",
+    href: "/admin/products/add",
+  },
+  {
+    name: "Orders",
+    href: "/admin/orders",
+  },
+  {
+    name: "Customers",
+    href: "/admin/customers",
+  },
+];
 
   return (
     <div
