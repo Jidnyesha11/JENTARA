@@ -107,6 +107,47 @@ export default function CheckoutPage() {
     try {
       setPlacing(true);
 
+      for (const item of items) {
+  const {
+    data: product,
+    error,
+  } = await supabase
+    .from("products")
+    .select(
+      "name,size_inventory"
+    )
+    .eq("id", item.id)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  const inventory =
+    (product.size_inventory ??
+      {}) as Record<
+      string,
+      number
+    >;
+
+  const availableStock =
+    Number(
+      inventory[item.size] ??
+        0
+    );
+
+  if (
+    availableStock <
+    item.quantity
+  ) {
+    alert(
+      `${product.name} (${item.size}) is out of stock`
+    );
+
+    return;
+  }
+}
+
       const {
         data: order,
         error: orderError,
@@ -157,29 +198,79 @@ export default function CheckoutPage() {
       }
 
       const payload =
-        items.map((item) => ({
-          order_id: order.id,
+  items.map((item) => ({
+    order_id: order.id,
 
-          product_id: item.id,
+    product_id: item.id,
 
-          product_name:
-            item.name,
+    product_name:
+      item.name,
 
-          price: item.price,
+    size: item.size,
 
-          quantity:
-            item.quantity,
-        }));
+    price: item.price,
+
+    quantity:
+      item.quantity,
+  }));
 
       const {
-        error: itemError,
-      } = await supabase
-        .from("order_items")
-        .insert(payload);
+  error: itemError,
+} = await supabase
+  .from("order_items")
+  .insert(payload);
 
-      if (itemError)
-        throw itemError;
+if (itemError) {
+  throw itemError;
+}
 
+for (const item of items) {
+  const {
+    data: product,
+    error: productError,
+  } = await supabase
+    .from("products")
+    .select(
+      "size_inventory"
+    )
+    .eq("id", item.id)
+    .single();
+
+  if (productError) {
+    throw productError;
+  }
+
+  const inventory = {
+    ...((product.size_inventory ??
+      {}) as Record<
+      string,
+      number
+    >),
+  };
+
+  inventory[item.size] =
+    Math.max(
+      0,
+      Number(
+        inventory[item.size] ??
+          0
+      ) - item.quantity
+    );
+
+  const {
+    error: updateError,
+  } = await supabase
+    .from("products")
+    .update({
+      size_inventory:
+        inventory,
+    })
+    .eq("id", item.id);
+
+  if (updateError) {
+    throw updateError;
+  }
+}
       clearCart();
 
       router.push(
@@ -339,7 +430,17 @@ export default function CheckoutPage() {
                 <div className="flex justify-between">
                   <span>Total Items</span>
                   <span>
-                    {items.length}
+                    {
+  items.reduce(
+    (
+      total,
+      item
+    ) =>
+      total +
+      item.quantity,
+    0
+  )
+}
                   </span>
                 </div>
 

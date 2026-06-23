@@ -9,6 +9,7 @@ interface Props {
   name: string;
   price: number;
   image_url: string;
+  size: string;
 }
 
 export default function AddToCartButton({
@@ -16,6 +17,7 @@ export default function AddToCartButton({
   name,
   price,
   image_url,
+  size,
 }: Props) {
   const router = useRouter();
 
@@ -25,11 +27,20 @@ export default function AddToCartButton({
     );
 
   function handleAddToCart() {
+    if (!size) {
+      alert(
+        "Please select a size"
+      );
+
+      return;
+    }
+
     addItem({
       id,
       name,
       price,
       image_url,
+      size,
     });
 
     router.push("/cart");
@@ -38,16 +49,26 @@ export default function AddToCartButton({
   return (
     <button
       onClick={handleAddToCart}
-      className="
+      disabled={!size}
+      className={`
         mt-8
-        bg-black
-        text-white
+        w-full
         px-8
         py-4
         rounded-lg
-      "
+        font-medium
+        transition-all
+
+        ${
+          size
+            ? "bg-black text-white hover:opacity-90"
+            : "bg-neutral-300 text-neutral-500 cursor-not-allowed"
+        }
+      `}
     >
-      Add To Cart
+      {size
+        ? "Add To Cart"
+        : "Select Size"}
     </button>
   );
 }

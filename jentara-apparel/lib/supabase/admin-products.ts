@@ -25,6 +25,7 @@ export async function createProduct(
     category_id: string;
     image_url: string;
     sizes: string;
+    size_inventory: Record<string, number>;
     stock: number;
     slug: string;
     featured: boolean;

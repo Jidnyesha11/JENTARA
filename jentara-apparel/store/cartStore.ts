@@ -6,6 +6,7 @@ export interface CartItem {
   name: string;
   price: number;
   image_url: string;
+  size: string;
   quantity: number;
 }
 
@@ -16,14 +17,19 @@ interface CartStore {
     item: Omit<CartItem, "quantity">
   ) => void;
 
-  removeItem: (id: string) => void;
+  removeItem: (
+    id: string,
+    size: string
+  ) => void;
 
   increaseQuantity: (
-    id: string
+    id: string,
+    size: string
   ) => void;
 
   decreaseQuantity: (
-    id: string
+    id: string,
+    size: string
   ) => void;
 
   clearCart: () => void;
@@ -41,14 +47,17 @@ export const useCartStore =
           set((state) => {
             const existing =
               state.items.find(
-                (i) => i.id === item.id
+                (i) =>
+                  i.id === item.id &&
+                  i.size === item.size
               );
 
             if (existing) {
               return {
                 items: state.items.map(
                   (i) =>
-                    i.id === item.id
+                    i.id === item.id &&
+                    i.size === item.size
                       ? {
                           ...i,
                           quantity:
@@ -70,19 +79,31 @@ export const useCartStore =
             };
           }),
 
-        removeItem: (id) =>
+        removeItem: (
+          id,
+          size
+        ) =>
           set((state) => ({
-            items: state.items.filter(
-              (item) =>
-                item.id !== id
-            ),
+            items:
+              state.items.filter(
+                (item) =>
+                  !(
+                    item.id === id &&
+                    item.size ===
+                      size
+                  )
+              ),
           })),
 
-        increaseQuantity: (id) =>
+        increaseQuantity: (
+          id,
+          size
+        ) =>
           set((state) => ({
             items: state.items.map(
               (item) =>
-                item.id === id
+                item.id === id &&
+                item.size === size
                   ? {
                       ...item,
                       quantity:
@@ -92,11 +113,15 @@ export const useCartStore =
             ),
           })),
 
-        decreaseQuantity: (id) =>
+        decreaseQuantity: (
+          id,
+          size
+        ) =>
           set((state) => ({
             items: state.items
               .map((item) =>
-                item.id === id
+                item.id === id &&
+                item.size === size
                   ? {
                       ...item,
                       quantity:
@@ -125,7 +150,7 @@ export const useCartStore =
           ),
       }),
       {
-        name: "jentara-cart-v2",
+        name: "jentara-cart-v3",
       }
     )
   );

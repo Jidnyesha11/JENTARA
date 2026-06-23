@@ -41,10 +41,6 @@ export default function AddProductPage() {
   const [imageUrl, setImageUrl] =
     useState("");
 
-  const [
-  selectedSizes,
-  setSelectedSizes,
-] = useState<string[]>([]);
 
   const [stock, setStock] =
     useState("");
@@ -59,6 +55,18 @@ export default function AddProductPage() {
 
   const [previewUrl, setPreviewUrl] =
   useState("");
+
+  const [
+  sizeInventory,
+  setSizeInventory,
+] = useState({
+  XS: 0,
+  S: 0,
+  M: 0,
+  L: 0,
+  XL: 0,
+  XXL: 0,
+});
 
     useEffect(() => {
   getCategories()
@@ -100,8 +108,8 @@ export default function AddProductPage() {
         originalPrice,
         categoryId,
         imageUrl,
-        sizes:
-  selectedSizes.join(","),
+        size_inventory:
+  sizeInventory,
         stock,
         featured,
       });
@@ -135,7 +143,13 @@ if (imageFile) {
           uploadedImageUrl,
 
         sizes:
-  selectedSizes.join(","),
+          Object.entries(sizeInventory)
+            .filter(([, qty]) => qty > 0)
+            .map(([size]) => size)
+            .join(","),
+
+        size_inventory:
+          sizeInventory,
 
         stock:
           Number(stock),
@@ -154,7 +168,6 @@ if (imageFile) {
       setOriginalPrice("");
       setCategoryId("");
       setImageUrl("");
-      setSelectedSizes([]);
       setStock("");
       setFeatured(false);
     } catch (error: unknown) {
@@ -306,73 +319,62 @@ if (imageFile) {
   />
 )}
 
-        <div className="space-y-3">
-  <label className="font-medium">
-    Available Sizes
-  </label>
+      <div className="space-y-4">
 
-  <div className="flex flex-wrap gap-4">
+  <h3 className="font-semibold">
+    Size Inventory
+  </h3>
 
-    {[
-      "XS",
-      "S",
-      "M",
-      "L",
-      "XL",
-      "XXL",
-    ].map((size) => (
-      <label
+  {Object.entries(
+    sizeInventory
+  ).map(
+    ([size, qty]) => (
+      <div
         key={size}
         className="
           flex
           items-center
-          gap-2
+          gap-4
         "
       >
-        <input
-          type="checkbox"
-          checked={selectedSizes.includes(
-            size
-          )}
-          onChange={() => {
-            if (
-              selectedSizes.includes(
-                size
-              )
-            ) {
-              setSelectedSizes(
-                selectedSizes.filter(
-                  (s) =>
-                    s !== size
-                )
-              );
-            } else {
-              setSelectedSizes([
-                ...selectedSizes,
-                size,
-              ]);
-            }
-          }}
-        />
-
-        {size}
-      </label>
-    ))}
-
-  </div>
-</div>
+        <label
+          className="
+            w-16
+            font-medium
+          "
+        >
+          {size}
+        </label>
 
         <input
           type="number"
-          placeholder="Stock"
-          value={stock}
+          min="0"
+          value={qty}
           onChange={(e) =>
-            setStock(
-              e.target.value
+            setSizeInventory(
+              (
+                prev
+              ) => ({
+                ...prev,
+                [size]:
+                  Number(
+                    e.target
+                      .value
+                  ),
+              })
             )
           }
-          className="border p-4 w-full rounded-lg"
+          className="
+            border
+            p-3
+            rounded-lg
+            w-32
+          "
         />
+      </div>
+    )
+  )}
+</div>
 
         <label className="flex items-center gap-3">
           <input

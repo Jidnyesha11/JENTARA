@@ -28,9 +28,17 @@ type Product = {
   id: string;
   name: string;
   price: number;
-  stock: number;
   featured: boolean;
   image_url: string;
+
+  size_inventory?: {
+    XS?: number;
+    S?: number;
+    M?: number;
+    L?: number;
+    XL?: number;
+    XXL?: number;
+  };
 };
 
 export default function AdminProductsPage() {
@@ -161,6 +169,8 @@ async function handleImport() {
       original_price:
         product.price,
       sizes: "",
+      // provide empty size_inventory to satisfy required parameter
+      size_inventory: {},
       featured: false,
     });
   }
@@ -323,10 +333,54 @@ async function handleExport() {
                   ₹{product.price}
                 </p>
 
-                <p>
-                  Stock:{" "}
-                  {product.stock}
-                </p>
+                <p className="mt-2 font-medium">
+  Total Stock:{" "}
+  {Object.values(
+    product.size_inventory ?? {}
+  ).reduce(
+    (total, qty) =>
+      total + Number(qty),
+    0
+  )}
+</p>
+
+<div className="mt-2 text-sm text-neutral-600 grid grid-cols-3 gap-2">
+  <p>
+    XS:{" "}
+    {product.size_inventory
+      ?.XS ?? 0}
+  </p>
+
+  <p>
+    S:{" "}
+    {product.size_inventory
+      ?.S ?? 0}
+  </p>
+
+  <p>
+    M:{" "}
+    {product.size_inventory
+      ?.M ?? 0}
+  </p>
+
+  <p>
+    L:{" "}
+    {product.size_inventory
+      ?.L ?? 0}
+  </p>
+
+  <p>
+    XL:{" "}
+    {product.size_inventory
+      ?.XL ?? 0}
+  </p>
+
+  <p>
+    XXL:{" "}
+    {product.size_inventory
+      ?.XXL ?? 0}
+  </p>
+</div>
 
                 <p>
                   Featured:{" "}

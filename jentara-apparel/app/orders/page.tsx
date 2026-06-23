@@ -51,6 +51,9 @@ export default function OrdersPage() {
 
   function getStatusColor(status: string) {
     switch (status?.toLowerCase()) {
+      case "pending":
+        return "bg-orange-100 text-orange-700";
+
       case "delivered":
         return "bg-green-100 text-green-700";
 
@@ -115,7 +118,7 @@ export default function OrdersPage() {
             </p>
 
             <Link
-              href="/products"
+              href="/shop"
               className="
                 inline-block
                 bg-[#4a0f0f]
@@ -172,10 +175,19 @@ export default function OrdersPage() {
 
                     </div>
 
-                    <p>
-                      <strong>Date:</strong>{" "}
-                      {new Date(order.created_at).toLocaleDateString()}
-                    </p>
+                    <div className="space-y-1">
+  <p>
+    <strong>Date:</strong>{" "}
+    {new Date(
+      order.created_at
+    ).toLocaleDateString()}
+  </p>
+
+  <p>
+    <strong>Total:</strong>{" "}
+    ₹{order.total_amount}
+  </p>
+</div> 
 
                     <Link
                       href={`/orders/${order.id}`}

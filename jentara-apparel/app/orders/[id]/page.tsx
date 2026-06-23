@@ -10,14 +10,17 @@ interface OrderItem {
   product_name: string;
   price: number;
   quantity: number;
+  size: string;
 }
 
 interface Order {
+  id: string;
   address_line_1: string;
   address_line_2: string;
   city: string;
   state: string;
   pincode: string;
+  status: string;
 }
 
 export default function OrderDetailsPage() {
@@ -49,11 +52,13 @@ export default function OrderDetailsPage() {
         .from("orders")
         .select(
           `
+          id,
           address_line_1,
           address_line_2,
           city,
           state,
-          pincode
+          pincode,
+          status
         `
         )
         .eq("id", params.id)
@@ -126,7 +131,14 @@ export default function OrderDetailsPage() {
               ) : (
 
                 <div className="space-y-6">
-
+                  
+                  <p className="text-gray-500 mt-2">
+  Order #
+  {String(order?.id).slice(
+    0,
+    8
+  )}
+</p>
                   {items.map((item) => (
 
                     <div
@@ -151,6 +163,14 @@ export default function OrderDetailsPage() {
                             {" "}
                             {item.quantity}
                           </p>
+
+                          <p className="text-gray-500">
+  Size:
+  {" "}
+  <span className="font-medium">
+    {item.size}
+  </span>
+</p>
 
                         </div>
 
@@ -194,6 +214,28 @@ export default function OrderDetailsPage() {
             </div>
 
           </div>
+
+          <div className="bg-white rounded-3xl shadow-md p-8">
+
+  <h2 className="text-2xl font-bold mb-4">
+    Order Status
+  </h2>
+
+  <span
+    className="
+      bg-orange-100
+      text-orange-700
+      px-4
+      py-2
+      rounded-full
+      text-sm
+      font-medium
+    "
+  >
+    {order?.status ?? "Unknown"}
+  </span>
+
+</div>
 
           {/* Right Side */}
           <div className="space-y-8">
@@ -244,7 +286,17 @@ export default function OrderDetailsPage() {
                 <div className="flex justify-between">
                   <span>Total Items</span>
                   <span>
-                    {items.length}
+                    {
+  items.reduce(
+    (
+      total,
+      item
+    ) =>
+      total +
+      item.quantity,
+    0
+  )
+}
                   </span>
                 </div>
 

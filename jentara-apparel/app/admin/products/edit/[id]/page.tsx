@@ -38,11 +38,20 @@ export default function EditProductPage({
   const [price, setPrice] =
     useState("");
 
-  const [stock, setStock] =
-    useState("");
-
   const [featured, setFeatured] =
     useState(false);
+
+  const [
+  sizeInventory,
+  setSizeInventory,
+] = useState({
+  XS: 0,
+  S: 0,
+  M: 0,
+  L: 0,
+  XL: 0,
+  XXL: 0,
+});
 
   const [imageUrl, setImageUrl] =
     useState("");
@@ -87,12 +96,6 @@ export default function EditProductPage({
           )
         );
 
-        setStock(
-          String(
-            product.stock ?? 0
-          )
-        );
-
         setFeatured(
           product.featured ??
             false
@@ -102,6 +105,38 @@ export default function EditProductPage({
           product.image_url ??
             ""
         );
+
+        setSizeInventory({
+  XS:
+    product
+      .size_inventory
+      ?.XS ?? 0,
+
+  S:
+    product
+      .size_inventory
+      ?.S ?? 0,
+
+  M:
+    product
+      .size_inventory
+      ?.M ?? 0,
+
+  L:
+    product
+      .size_inventory
+      ?.L ?? 0,
+
+  XL:
+    product
+      .size_inventory
+      ?.XL ?? 0,
+
+  XXL:
+    product
+      .size_inventory
+      ?.XXL ?? 0,
+});
       } catch (error) {
         console.error(
           "LOAD PRODUCT ERROR:",
@@ -128,22 +163,23 @@ export default function EditProductPage({
       }
 
       await updateProduct(
-        productId,
-        {
-          name,
+  productId,
+  {
+    name,
 
-          price:
-            Number(price),
+    price:
+      Number(price),
 
-          stock:
-            Number(stock),
+    featured,
 
-          featured,
+    image_url:
+      uploadedImageUrl,
 
-          image_url:
-            uploadedImageUrl,
-        }
-      );
+    size_inventory:
+      sizeInventory,
+  }
+);
+
       // upload gallery images after product update
       for (const file of galleryFiles) {
         await uploadGalleryImage(productId, file);
@@ -280,22 +316,62 @@ export default function EditProductPage({
           "
         />
 
+        <div className="space-y-4">
+
+  <h3 className="font-semibold text-lg">
+    Size Inventory
+  </h3>
+
+  {Object.entries(
+    sizeInventory
+  ).map(
+    ([size, qty]) => (
+      <div
+        key={size}
+        className="
+          flex
+          items-center
+          gap-4
+        "
+      >
+        <label
+          className="
+            w-16
+            font-medium
+          "
+        >
+          {size}
+        </label>
+
         <input
           type="number"
-          value={stock}
+          min="0"
+          value={qty}
           onChange={(e) =>
-            setStock(
-              e.target.value
+            setSizeInventory(
+              (
+                prev
+              ) => ({
+                ...prev,
+                [size]:
+                  Number(
+                    e.target
+                      .value
+                  ),
+              })
             )
           }
-          placeholder="Stock"
           className="
             border
-            p-4
-            w-full
+            p-3
             rounded-lg
+            w-32
           "
         />
+      </div>
+    )
+  )}
+</div>
 
         <label className="flex items-center gap-3">
           <input
