@@ -1,18 +1,6 @@
 // app/about/page.tsx
 
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
-
-const navItems = [
-  { label: "HOME", href: "/" },
-  { label: "SHOP", href: "/shop" },
-  { label: "WOMEN", href: "/shop?category=women" },
-  { label: "MEN", href: "/shop?category=men" },
-  { label: "ABOUT US", href: "/about" },
-  { label: "CONTACT US", href: "/contact" },
-];
 
 const values = [
   {
@@ -33,157 +21,13 @@ const values = [
 ];
 
 export default function AboutPage() {
-  const [menuOpen, setMenuOpen] = useState(false);
-
   return (
     <main className="min-h-screen bg-[#f5ede4] text-[#4b1712]">
-      {/* =========================================================
-          NAVBAR
-      ========================================================= */}
-      <header className="sticky top-0 z-50 border-b border-[#4b1712]/20 bg-[#f5ede4]/95 backdrop-blur-md">
-        <div className="mx-auto max-w-[1500px] px-5 md:px-8">
-          <div className="relative flex h-[72px] items-center justify-between md:h-[88px]">
-            {/* Mobile Menu Button */}
-            <button
-              type="button"
-              aria-label="Open navigation"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((open) => !open)}
-              className="flex h-10 w-10 items-center justify-center text-[#4b1712] md:hidden"
-            >
-              <span className="text-xl">
-                {menuOpen ? "×" : "☰"}
-              </span>
-            </button>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:block">
-              <div className="flex items-center gap-6 lg:gap-8">
-                {navItems.map((item) => {
-                  const active = item.href === "/about";
-
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`
-                        relative
-                        text-[9px]
-                        font-semibold
-                        tracking-[0.13em]
-                        transition-opacity
-                        duration-300
-                        hover:opacity-50
-                        lg:text-[10px]
-                        ${
-                          active
-                            ? "after:absolute after:-bottom-2 after:left-0 after:h-px after:w-full after:bg-[#4b1712]"
-                            : ""
-                        }
-                      `}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </nav>
-
-            {/* Logo */}
-            <Link
-              href="/"
-              className="
-                absolute
-                left-1/2
-                top-1/2
-                -translate-x-1/2
-                -translate-y-1/2
-              "
-              aria-label="Jentara Home"
-            >
-              <span
-                className="
-                  font-serif
-                  text-[38px]
-                  font-semibold
-                  lowercase
-                  leading-none
-                  tracking-[-0.09em]
-                  md:text-[43px]
-                "
-              >
-                jentara
-              </span>
-            </Link>
-
-            {/* Right Actions */}
-            <div className="ml-auto flex items-center gap-4 md:gap-5">
-              <Link
-                href="/search"
-                aria-label="Search"
-                className="
-                  text-lg
-                  transition-transform
-                  duration-300
-                  hover:-translate-y-0.5
-                "
-              >
-                ⌕
-              </Link>
-
-              <Link
-                href="/cart"
-                aria-label="Cart"
-                className="
-                  text-lg
-                  transition-transform
-                  duration-300
-                  hover:-translate-y-0.5
-                "
-              >
-                ♡
-              </Link>
-            </div>
-          </div>
-
-          {/* Mobile Navigation */}
-          <div
-            className={`
-              overflow-hidden
-              transition-all
-              duration-300
-              md:hidden
-              ${
-                menuOpen
-                  ? "max-h-[400px] border-t border-[#4b1712]/15 py-5"
-                  : "max-h-0"
-              }
-            `}
-          >
-            <nav className="flex flex-col gap-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="
-                    text-[10px]
-                    font-semibold
-                    tracking-[0.18em]
-                  "
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-        </div>
-      </header>
-
       <div className="mx-auto max-w-[1500px] px-5 md:px-8">
         {/* =======================================================
             HERO
         ======================================================= */}
+
         <section className="pt-8 md:pt-12">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div>
@@ -219,7 +63,6 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* Hero Visual */}
           <div className="group relative mt-8 overflow-hidden rounded-[20px] border border-[#4b1712]/10 bg-[#d7d1ca]">
             <div className="flex h-[180px] items-center justify-center transition-transform duration-700 group-hover:scale-[1.015] sm:h-[230px] md:h-[320px]">
               <div className="text-center">
@@ -259,6 +102,7 @@ export default function AboutPage() {
         {/* =======================================================
             TRUST STRIP
         ======================================================= */}
+
         <section className="mt-5 border-y border-[#4b1712]/25">
           <div className="grid md:grid-cols-3">
             {[
@@ -292,6 +136,7 @@ export default function AboutPage() {
         {/* =======================================================
             INTRODUCTION
         ======================================================= */}
+
         <section className="py-14 md:py-20">
           <div className="grid gap-10 md:grid-cols-[1.25fr_0.75fr] md:gap-20">
             <div>
@@ -336,9 +181,9 @@ export default function AboutPage() {
         {/* =======================================================
             OUR VISION / PRODUCTS
         ======================================================= */}
+
         <section className="border-t border-[#4b1712]/30">
           <div className="grid md:grid-cols-2">
-            {/* Vision */}
             <article className="border-b border-[#4b1712]/30 py-9 md:border-b-0 md:border-r md:pr-14">
               <div className="mb-10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -374,7 +219,6 @@ export default function AboutPage() {
               </p>
             </article>
 
-            {/* Products */}
             <article className="py-9 md:pl-14">
               <div className="mb-10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -440,6 +284,7 @@ export default function AboutPage() {
         {/* =======================================================
             VALUES
         ======================================================= */}
+
         <section className="border-t border-[#4b1712]/30 py-14 md:py-20">
           <div className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
@@ -504,9 +349,9 @@ export default function AboutPage() {
         {/* =======================================================
             INSPIRATION / COMMUNITY
         ======================================================= */}
+
         <section className="border-t border-[#4b1712]/30">
           <div className="grid md:grid-cols-2">
-            {/* Inspiration */}
             <article className="border-b border-[#4b1712]/30 py-10 md:border-b-0 md:border-r md:pr-14">
               <div className="mb-10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -544,7 +389,6 @@ export default function AboutPage() {
               </p>
             </article>
 
-            {/* Community */}
             <article className="py-10 md:pl-14">
               <div className="mb-10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -589,6 +433,7 @@ export default function AboutPage() {
         {/* =======================================================
             BRAND STATEMENT
         ======================================================= */}
+
         <section className="py-16 md:py-24">
           <div className="relative overflow-hidden rounded-[22px] bg-[#4b1712] px-7 py-14 text-[#f5ede4] sm:px-10 md:px-16 md:py-20">
             <div className="absolute right-[-30px] top-[-80px] font-serif text-[280px] leading-none text-[#f5ede4]/[0.035]">
@@ -638,6 +483,7 @@ export default function AboutPage() {
         {/* =======================================================
             FINAL CTA
         ======================================================= */}
+
         <section className="pb-14 md:pb-20">
           <div className="border-y border-[#4b1712]/30 py-10">
             <div className="flex flex-col justify-between gap-8 md:flex-row md:items-center">
@@ -661,7 +507,7 @@ export default function AboutPage() {
               </div>
 
               <Link
-                href="/shop"
+                href="/products"
                 className="
                   group
                   flex
@@ -695,6 +541,7 @@ export default function AboutPage() {
         {/* =======================================================
             FINAL IMAGE
         ======================================================= */}
+
         <section className="pb-12 md:pb-16">
           <div className="group relative overflow-hidden rounded-[20px] bg-[#d7d1ca]">
             <div className="flex h-[170px] items-center justify-center transition-transform duration-700 group-hover:scale-[1.02] sm:h-[220px] md:h-[280px]">

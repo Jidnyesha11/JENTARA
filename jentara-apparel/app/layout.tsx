@@ -1,6 +1,7 @@
 // app/layout.tsx
 
 import "./globals.css";
+
 import type { Metadata } from "next";
 
 import {
@@ -8,12 +9,12 @@ import {
   Poppins,
 } from "next/font/google";
 
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import SiteChrome from "@/components/layout/SiteChrome";
 
 export const playfair =
   Playfair_Display({
     subsets: ["latin"],
+    variable: "--font-playfair",
   });
 
 export const poppins =
@@ -26,6 +27,7 @@ export const poppins =
       "600",
       "700",
     ],
+    variable: "--font-poppins",
   });
 
 export const metadata: Metadata = {
@@ -43,13 +45,19 @@ export default function RootLayout({
     <html
       lang="en"
       data-scroll-behavior="smooth"
+      className={`${playfair.variable} ${poppins.variable}`}
     >
-      <body className={poppins.className}>
-        <Navbar />
-
-        {children}
-
-        <Footer />
+      <body
+        className={`
+          ${poppins.className}
+          bg-[#f5ede4]
+          text-[#151a2a]
+          antialiased
+        `}
+      >
+        <SiteChrome>
+          {children}
+        </SiteChrome>
       </body>
     </html>
   );

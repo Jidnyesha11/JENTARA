@@ -2,71 +2,52 @@
 
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useState } from "react";
-
-const navItems = [
-  {
-    label: "HOME",
-    href: "/",
-  },
-  {
-    label: "SHOP",
-    href: "/shop",
-  },
-  {
-    label: "WOMEN",
-    href: "/shop?category=women",
-  },
-  {
-    label: "MEN",
-    href: "/shop?category=men",
-  },
-  {
-    label: "ABOUT US",
-    href: "/about",
-  },
-  {
-    label: "CONTACT US",
-    href: "/contact",
-  },
-];
 
 const contactDetails = [
   {
     number: "01",
-    label: "WHATSAPP SUPPORT",
-    value: "+91 9284191297",
-    href: "https://wa.me/919284191297",
-  },
-  {
-    number: "02",
-    label: "EMAIL",
+    label: "Email",
     value: "support@jentara.in",
     href: "mailto:support@jentara.in",
   },
   {
+    number: "02",
+    label: "Instagram",
+    value: "@jentaraapparel",
+    href: "https://instagram.com/jentaraapparel",
+  },
+  {
     number: "03",
-    label: "OUR LOCATION",
-    value: "MUMBAI - 400101",
-    href: "#location",
+    label: "WhatsApp",
+    value: "+91 92841 91297",
+    href: "https://wa.me/919284191297",
   },
 ];
 
+interface ContactForm {
+  fullName: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+const initialForm: ContactForm = {
+  fullName: "",
+  email: "",
+  subject: "",
+  message: "",
+};
+
 export default function ContactPage() {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [form, setForm] =
+    useState<ContactForm>(initialForm);
 
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
-
-  const [sending, setSending] = useState(false);
+  const [sending, setSending] =
+    useState(false);
 
   function handleChange(
-    field: keyof typeof form,
+    field: keyof ContactForm,
     value: string
   ) {
     setForm((previous) => ({
@@ -75,7 +56,7 @@ export default function ContactPage() {
     }));
   }
 
-  async function handleSubmit(
+  function handleSubmit(
     event: FormEvent<HTMLFormElement>
   ) {
     event.preventDefault();
@@ -86,211 +67,39 @@ export default function ContactPage() {
       !form.subject.trim() ||
       !form.message.trim()
     ) {
-      alert("Please fill in all fields.");
+      window.alert(
+        "Please complete all fields before sending your message."
+      );
+
       return;
     }
 
-    try {
-      setSending(true);
+    setSending(true);
 
-      /*
-       * The form is currently UI-ready.
-       * Connect this handler to your email/API service
-       * when the backend email workflow is added.
-       */
+    const subject = encodeURIComponent(
+      form.subject
+    );
 
-      await new Promise((resolve) =>
-        setTimeout(resolve, 800)
-      );
+    const body = encodeURIComponent(
+      `Name: ${form.fullName}\nEmail: ${form.email}\n\n${form.message}`
+    );
 
-      alert(
-        "Thank you for contacting JENTARA. We will get back to you soon."
-      );
+    window.location.href =
+      `mailto:support@jentara.in?subject=${subject}&body=${body}`;
 
-      setForm({
-        fullName: "",
-        email: "",
-        subject: "",
-        message: "",
-      });
-    } catch (error) {
-      console.error(
-        "CONTACT FORM ERROR:",
-        error
-      );
-
-      alert(
-        "Unable to send your message. Please try again."
-      );
-    } finally {
+    setTimeout(() => {
       setSending(false);
-    }
+    }, 500);
   }
 
   return (
     <main className="min-h-screen bg-[#f5ede4] text-[#4b1712]">
-      {/* =========================================================
-          NAVBAR
-      ========================================================= */}
-      <header className="sticky top-0 z-50 border-b border-[#4b1712]/20 bg-[#f5ede4]/95 backdrop-blur-md">
-        <div className="mx-auto max-w-[1500px] px-5 md:px-8">
-          <div className="relative flex h-[72px] items-center justify-between md:h-[88px]">
-            {/* Mobile Menu */}
-            <button
-              type="button"
-              aria-label="Toggle navigation"
-              aria-expanded={menuOpen}
-              onClick={() =>
-                setMenuOpen(
-                  (previous) => !previous
-                )
-              }
-              className="
-                flex
-                h-10
-                w-10
-                items-center
-                justify-center
-                text-[#4b1712]
-                md:hidden
-              "
-            >
-              <span className="text-xl">
-                {menuOpen ? "×" : "☰"}
-              </span>
-            </button>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:block">
-              <div className="flex items-center gap-6 lg:gap-8">
-                {navItems.map((item) => {
-                  const active =
-                    item.href === "/contact";
-
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`
-                        relative
-                        text-[9px]
-                        font-semibold
-                        tracking-[0.13em]
-                        transition-opacity
-                        duration-300
-                        hover:opacity-50
-                        lg:text-[10px]
-                        ${
-                          active
-                            ? "after:absolute after:-bottom-2 after:left-0 after:h-px after:w-full after:bg-[#4b1712]"
-                            : ""
-                        }
-                      `}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </nav>
-
-            {/* Logo */}
-            <Link
-              href="/"
-              aria-label="JENTARA Home"
-              className="
-                absolute
-                left-1/2
-                top-1/2
-                -translate-x-1/2
-                -translate-y-1/2
-              "
-            >
-              <span
-                className="
-                  font-serif
-                  text-[38px]
-                  font-semibold
-                  lowercase
-                  leading-none
-                  tracking-[-0.09em]
-                  md:text-[43px]
-                "
-              >
-                jentara
-              </span>
-            </Link>
-
-            {/* Actions */}
-            <div className="ml-auto flex items-center gap-4 md:gap-5">
-              <Link
-                href="/search"
-                aria-label="Search"
-                className="
-                  text-lg
-                  transition-transform
-                  duration-300
-                  hover:-translate-y-0.5
-                "
-              >
-                ⌕
-              </Link>
-
-              <Link
-                href="/cart"
-                aria-label="Cart"
-                className="
-                  text-lg
-                  transition-transform
-                  duration-300
-                  hover:-translate-y-0.5
-                "
-              >
-                ♡
-              </Link>
-            </div>
-          </div>
-
-          {/* Mobile Navigation */}
-          <div
-            className={`
-              overflow-hidden
-              transition-all
-              duration-300
-              md:hidden
-              ${
-                menuOpen
-                  ? "max-h-[400px] border-t border-[#4b1712]/15 py-5"
-                  : "max-h-0"
-              }
-            `}
-          >
-            <nav className="flex flex-col gap-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() =>
-                    setMenuOpen(false)
-                  }
-                  className="
-                    text-[10px]
-                    font-semibold
-                    tracking-[0.18em]
-                  "
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-        </div>
-      </header>
-
       <div className="mx-auto max-w-[1500px] px-5 md:px-8">
-        {/* =======================================================
+
+        {/* =====================================================
             HERO
-        ======================================================= */}
+        ===================================================== */}
+
         <section className="border-b border-[#4b1712]/25 py-10 md:py-14">
           <div className="mb-5 flex items-center gap-3">
             <span className="h-px w-8 bg-[#4b1712]" />
@@ -325,12 +134,17 @@ export default function ContactPage() {
           </div>
         </section>
 
-        {/* =======================================================
+        {/* =====================================================
             MAIN CONTACT SECTION
-        ======================================================= */}
+        ===================================================== */}
+
         <section className="py-12 md:py-20">
           <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
-            {/* Left Side */}
+
+            {/* =================================================
+                LEFT
+            ================================================= */}
+
             <div>
               <p className="mb-5 text-[9px] font-semibold uppercase tracking-[0.3em] text-[#4b1712]/50">
                 We Are Always Ready
@@ -357,13 +171,15 @@ export default function ContactPage() {
               </h2>
 
               <p className="mt-8 max-w-[570px] text-[12px] leading-[1.9] text-[#4b1712]/70 md:text-[13px]">
-                We&apos;re always excited to hear from our community.
-                Whether you need assistance with an order, have
-                inquiries about our collections, or want to
-                collaborate with JENTARA, our team is here to help.
+                We&apos;re always excited to hear from our
+                community. Whether you need assistance with an
+                order, have inquiries about our collections, or
+                want to collaborate with JENTARA, our team is
+                here to help.
               </p>
 
               {/* Contact Details */}
+
               <div className="mt-10 border-t border-[#4b1712]/25">
                 {contactDetails.map(
                   (contact) => (
@@ -422,6 +238,7 @@ export default function ContactPage() {
               </div>
 
               {/* Support Hours */}
+
               <div className="mt-9 flex items-start gap-4">
                 <span className="mt-1 h-2 w-2 rounded-full bg-[#4b1712]" />
 
@@ -441,7 +258,10 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Right Side - Form */}
+            {/* =================================================
+                CONTACT FORM
+            ================================================= */}
+
             <div>
               <div
                 className="
@@ -490,6 +310,7 @@ export default function ContactPage() {
                   className="space-y-7"
                 >
                   {/* Full Name */}
+
                   <div>
                     <label
                       htmlFor="fullName"
@@ -507,6 +328,7 @@ export default function ContactPage() {
 
                     <input
                       id="fullName"
+                      name="fullName"
                       type="text"
                       value={form.fullName}
                       onChange={(event) =>
@@ -516,6 +338,7 @@ export default function ContactPage() {
                         )
                       }
                       placeholder="Your name"
+                      autoComplete="name"
                       className="
                         w-full
                         border-0
@@ -534,6 +357,7 @@ export default function ContactPage() {
                   </div>
 
                   {/* Email */}
+
                   <div>
                     <label
                       htmlFor="email"
@@ -551,6 +375,7 @@ export default function ContactPage() {
 
                     <input
                       id="email"
+                      name="email"
                       type="email"
                       value={form.email}
                       onChange={(event) =>
@@ -560,6 +385,7 @@ export default function ContactPage() {
                         )
                       }
                       placeholder="you@example.com"
+                      autoComplete="email"
                       className="
                         w-full
                         border-0
@@ -578,6 +404,7 @@ export default function ContactPage() {
                   </div>
 
                   {/* Subject */}
+
                   <div>
                     <label
                       htmlFor="subject"
@@ -595,6 +422,7 @@ export default function ContactPage() {
 
                     <input
                       id="subject"
+                      name="subject"
                       type="text"
                       value={form.subject}
                       onChange={(event) =>
@@ -622,6 +450,7 @@ export default function ContactPage() {
                   </div>
 
                   {/* Message */}
+
                   <div>
                     <label
                       htmlFor="message"
@@ -639,6 +468,7 @@ export default function ContactPage() {
 
                     <textarea
                       id="message"
+                      name="message"
                       value={form.message}
                       onChange={(event) =>
                         handleChange(
@@ -668,6 +498,7 @@ export default function ContactPage() {
                   </div>
 
                   {/* Submit */}
+
                   <button
                     type="submit"
                     disabled={sending}
@@ -694,7 +525,7 @@ export default function ContactPage() {
                   >
                     <span>
                       {sending
-                        ? "Sending..."
+                        ? "Opening Email..."
                         : "Send Message"}
                     </span>
 
@@ -708,14 +539,16 @@ export default function ContactPage() {
           </div>
         </section>
 
-        {/* =======================================================
-            LOCATION / SUPPORT
-        ======================================================= */}
+        {/* =====================================================
+            LOCATION
+        ===================================================== */}
+
         <section
           id="location"
           className="border-t border-[#4b1712]/30 py-12 md:py-20"
         >
           <div className="grid gap-8 md:grid-cols-[0.8fr_1.2fr] md:gap-16">
+
             <div>
               <p className="text-[8px] font-semibold uppercase tracking-[0.3em] text-[#4b1712]/50">
                 Find Us
@@ -743,7 +576,6 @@ export default function ContactPage() {
 
             <div
               className="
-                group
                 relative
                 min-h-[270px]
                 overflow-hidden
@@ -753,11 +585,13 @@ export default function ContactPage() {
                 bg-[#ddd7d0]
               "
             >
-              {/* Editorial map-style placeholder */}
               <div className="absolute inset-0 opacity-20">
                 <div className="absolute left-[12%] top-[22%] h-px w-[75%] rotate-[15deg] bg-[#4b1712]" />
+
                 <div className="absolute left-[5%] top-[50%] h-px w-[90%] rotate-[-8deg] bg-[#4b1712]" />
+
                 <div className="absolute left-[30%] top-[10%] h-[90%] w-px rotate-[18deg] bg-[#4b1712]" />
+
                 <div className="absolute left-[68%] top-[5%] h-[95%] w-px rotate-[-25deg] bg-[#4b1712]" />
               </div>
 
@@ -786,12 +620,14 @@ export default function ContactPage() {
           </div>
         </section>
 
-        {/* =======================================================
-            RESPONSE / WHATSAPP CTA
-        ======================================================= */}
+        {/* =====================================================
+            WHATSAPP
+        ===================================================== */}
+
         <section className="pb-14 md:pb-20">
           <div className="overflow-hidden rounded-[22px] bg-[#4b1712] px-7 py-12 text-[#f5ede4] sm:px-10 md:px-16 md:py-16">
             <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
+
               <div>
                 <p className="text-[8px] font-semibold uppercase tracking-[0.35em] text-[#f5ede4]/55">
                   Need A Faster Reply?
@@ -853,9 +689,10 @@ export default function ContactPage() {
           </div>
         </section>
 
-        {/* =======================================================
-            FINAL BRAND LINE
-        ======================================================= */}
+        {/* =====================================================
+            BRAND LINE
+        ===================================================== */}
+
         <section className="border-t border-[#4b1712]/30 pb-16 pt-10 text-center md:pb-20">
           <p className="font-serif text-[30px] tracking-[-0.04em] sm:text-[38px]">
             Star of the New Generation
@@ -865,6 +702,7 @@ export default function ContactPage() {
             JENTARA APPAREL
           </p>
         </section>
+
       </div>
     </main>
   );

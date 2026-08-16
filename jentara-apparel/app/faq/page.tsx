@@ -4,7 +4,6 @@
 
 import { useState } from "react";
 
-import Navbar from "@/components/layout/Navbar";
 
 const faqSections = [
   {
@@ -211,7 +210,6 @@ function AccordionItem({
 export default function FAQPage() {
   return (
     <main className="min-h-screen bg-[#f5ede4] text-[#151a2a]">
-      <Navbar />
 
       <section className="mx-auto max-w-[1500px] px-6 pb-16 pt-16 md:px-10 md:pb-24 md:pt-24">
         <div className="mb-8 flex items-center gap-3">

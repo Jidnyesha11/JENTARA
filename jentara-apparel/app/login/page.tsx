@@ -1,263 +1,681 @@
+
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { Mail, Lock, ArrowRight, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  Sparkles,
+} from "lucide-react";
 
-import { signIn } from "@/lib/supabase/auth";
+import {
+  signIn,
+  signInWithGoogle,
+} from "@/lib/supabase/auth";
+
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  async function handleLogin() {
+  const [email, setEmail] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
+
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [googleLoading, setGoogleLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  async function handleLogin(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
+    setError("");
+
+    if (!email.trim()) {
+      setError(
+        "Please enter your email address."
+      );
+      return;
+    }
+
+    if (!password) {
+      setError(
+        "Please enter your password."
+      );
+      return;
+    }
+
     try {
       setLoading(true);
-      const { error } = await signIn(email, password);
-      if (error) {
-        throw error;
+
+      const { error: signInError } =
+        await signIn(
+          email,
+          password
+        );
+
+      if (signInError) {
+        throw signInError;
       }
-      router.push("/");
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        alert(error.message);
+
+      router.replace("/");
+      router.refresh();
+    } catch (loginError: unknown) {
+      console.error(
+        "LOGIN ERROR:",
+        loginError
+      );
+
+      if (
+        loginError &&
+        typeof loginError === "object" &&
+        "message" in loginError
+      ) {
+        setError(
+          String(
+            (
+              loginError as {
+                message: string;
+              }
+            ).message
+          )
+        );
       } else {
-        alert(String(error));
+        setError(
+          "Unable to sign in. Please check your credentials and try again."
+        );
       }
     } finally {
       setLoading(false);
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-r from-[#4a0f0f] to-[#8b2e24] flex overflow-hidden relative">
+  async function handleGoogleLogin() {
+    try {
+      setError("");
+      setGoogleLoading(true);
 
-      {/* Decorative ambient circles */}
-      <div className="absolute top-[-120px] left-[-80px] w-[400px] h-[400px] rounded-full bg-white/5 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-100px] left-[30%] w-[300px] h-[300px] rounded-full bg-[#c0392b]/20 blur-2xl pointer-events-none" />
-      <div className="absolute top-[20%] right-[32%] w-[200px] h-[200px] rounded-full bg-white/5 blur-2xl pointer-events-none" />
+      const { error: googleError } =
+        await signInWithGoogle();
 
-      {/* ─── Left Section ─── */}
-      <div className="w-[65%] relative flex flex-col justify-between py-16 px-20 text-white overflow-hidden">
+      if (googleError) {
+        throw googleError;
+      }
+    } catch (googleLoginError: unknown) {
+      console.error(
+        "GOOGLE LOGIN ERROR:",
+        googleLoginError
+      );
 
-        {/* Top nav row */}
-        <div className="flex items-center justify-between">
-          <h1
-            className="text-5xl font-light tracking-[0.35em] uppercase"
-            style={{ fontFamily: "'Cormorant Garamond', serif", letterSpacing: "0.4em" }}
-          >
-            JENTARA
-          </h1>
-
-          <div className="flex items-center gap-2 text-white/50 text-sm tracking-widest uppercase">
-            <Sparkles size={14} className="text-white/40" />
-            <span>New Season 2025</span>
-          </div>
-        </div>
-
-        {/* Center content */}
-        <div className="flex flex-col gap-12">
-          {/* Thin top rule */}
-          <div className="w-16 h-[1px] bg-white/30" />
-
-          <div>
-            <p className="text-xs tracking-[0.4em] uppercase text-white/50 mb-4 font-light">
-              Explore the Collection
-            </p>
-            <h2
-              className="text-8xl font-semibold leading-none mb-10 tracking-tight"
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
-            >
-              SHOP
-            </h2>
-
-            <ul className="space-y-5">
-              <li className="flex items-center gap-5 text-2xl font-medium tracking-widest group cursor-pointer">
-                <span className="w-10 h-[1px] bg-white group-hover:w-16 transition-all duration-300" />
-                <span className="group-hover:translate-x-1 transition-transform duration-300">New Arrivals</span>
-                <span className="ml-auto text-xs tracking-widest text-white/40 uppercase group-hover:text-white/70 transition-colors">↗</span>
-              </li>
-              <li className="flex items-center gap-5 text-2xl text-white/50 tracking-widest group cursor-pointer hover:text-white/80 transition-colors pl-1">
-                <span className="w-0 h-[1px] bg-white group-hover:w-10 transition-all duration-300 opacity-0 group-hover:opacity-100" />
-                Men
-              </li>
-              <li className="flex items-center gap-5 text-2xl text-white/50 tracking-widest group cursor-pointer hover:text-white/80 transition-colors pl-1">
-                <span className="w-0 h-[1px] bg-white group-hover:w-10 transition-all duration-300 opacity-0 group-hover:opacity-100" />
-                Women
-              </li>
-            </ul>
-          </div>
-
-          {/* Bottom decorative tag */}
-          <div className="flex items-center gap-4">
-            <div className="px-4 py-1.5 border border-white/20 rounded-full text-xs tracking-widest text-white/40 uppercase">
-              Free Shipping · ₹999+
-            </div>
-            <div className="px-4 py-1.5 border border-white/20 rounded-full text-xs tracking-widest text-white/40 uppercase">
-              30-Day Returns
-            </div>
-          </div>
-        </div>
-
-        {/* Model Image — anchored bottom-right of left panel */}
-        <div className="absolute right-0 bottom-0 select-none">
-          <Image
-            src="/images/login-model.png"
-            alt="Model"
-            width={500}
-            height={680}
-            className="object-contain drop-shadow-2xl"
-          />
-          {/* Subtle vignette gradient on model edge */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-transparent pointer-events-none" />
-        </div>
-
-        {/* Bottom-left fine print */}
-        <p className="text-white/25 text-xs tracking-widest uppercase">
-          © 2025 Jentara · All Rights Reserved
-        </p>
-      </div>
-
-      {/* ─── Right Login Panel ─── */}
-      <div className="w-[35%] flex items-center justify-center p-8 relative z-10">
-        <div
-          className="w-full max-w-sm rounded-[28px] p-10 flex flex-col gap-0"
-          style={{
-            background: "rgba(60, 10, 8, 0.65)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
-            border: "1px solid rgba(255,255,255,0.10)",
-            boxShadow: "0 32px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08)",
-          }}
-        >
-          {/* Header */}
-          <div className="mb-8">
-            <p className="text-white/40 text-[10px] tracking-[0.35em] uppercase mb-3">Member Access</p>
-            <h2
-              className="text-white text-4xl font-semibold leading-tight mb-1"
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}
-            >
-              Welcome Back
-            </h2>
-            <p className="text-white/55 text-sm tracking-widest uppercase mt-1">
-              Let&apos;s Get Styled
-            </p>
-          </div>
-
-          {/* Divider */}
-          <div className="w-full h-[1px] bg-white/10 mb-8" />
-
-          {/* Email Field */}
-          <div className="group mb-6">
-            <label className="block text-[10px] tracking-[0.3em] uppercase text-white/40 mb-2.5 group-focus-within:text-white/70 transition-colors">
-              Email Address
-            </label>
-            <div className="flex items-center gap-3 border-b border-white/20 pb-3 group-focus-within:border-white/60 transition-colors">
-              <Mail className="text-white/40 group-focus-within:text-white/70 transition-colors shrink-0" size={16} />
-              <input
-               type="email"
-               value={email}
-               onChange={(e) =>
-               setEmail(e.target.value)
+      if (
+        googleLoginError &&
+        typeof googleLoginError === "object" &&
+        "message" in googleLoginError
+      ) {
+        setError(
+          String(
+            (
+              googleLoginError as {
+                message: string;
               }
-               placeholder="yourname@email.com"
-              />
-            </div>
-          </div>
+            ).message
+          )
+        );
+      } else {
+        setError(
+          "Google sign-in could not be started."
+        );
+      }
 
-          {/* Password Field */}
-          <div className="group mb-8">
-            <label className="block text-[10px] tracking-[0.3em] uppercase text-white/40 mb-2.5 group-focus-within:text-white/70 transition-colors">
-              Password
-            </label>
-            <div className="flex items-center gap-3 border-b border-white/20 pb-3 group-focus-within:border-white/60 transition-colors">
-              <Lock className="text-white/40 group-focus-within:text-white/70 transition-colors shrink-0" size={16} />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) =>
-               setPassword(
-               e.target.value
-               )
-               }
-              placeholder="••••••••"
-              />
-            </div>
-            <div className="flex justify-end mt-2">
-              <Link href="/forgot-password" className="text-[10px] text-white/35 hover:text-white/60 tracking-widest uppercase transition-colors">
-                Forgot Password?
-              </Link>
-            </div>
-          </div>
+      setGoogleLoading(false);
+    }
+  }
 
-          {/* CTA Button */}
-          <button onClick={handleLogin} disabled={loading} className="w-full bg-[#e7dbd0] text-[#5c1d15] py-4 rounded-full flex items-center justify-between px-7 font-semibold tracking-widest uppercase text-xs hover:bg-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/30 mb-7 disabled:opacity-50 disabled:cursor-not-allowed">
-            <span>{loading ? "Signing in..." : "Continue"}</span>
-            <div className="w-8 h-8 rounded-full bg-[#5c1d15]/10 flex items-center justify-center">
-              <ArrowRight size={15} />
-            </div>
-          </button>
+  return (
+    <main className="min-h-screen bg-[#f5ede4]">
+      <div className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
+        {/* Editorial Side */}
 
-          {/* OR Divider */}
-          <div className="flex items-center gap-4 mb-7">
-            <div className="flex-1 h-[1px] bg-white/15" />
-            <span className="text-white/30 text-[10px] tracking-[0.3em] uppercase">or</span>
-            <div className="flex-1 h-[1px] bg-white/15" />
-          </div>
+        <section
+          className="
+            relative
+            hidden
+            overflow-hidden
+            bg-[#451713]
+            px-10
+            py-10
+            text-[#f5ede4]
+            lg:flex
+            lg:flex-col
+            lg:justify-between
+            xl:px-16
+          "
+        >
+          <div
+            className="
+              pointer-events-none
+              absolute
+              -left-32
+              -top-32
+              h-[500px]
+              w-[500px]
+              rounded-full
+              border
+              border-white/10
+            "
+          />
 
-          {/* Social Login */}
-          <div className="flex items-center justify-center gap-6 mb-8">
+          <div
+            className="
+              pointer-events-none
+              absolute
+              -bottom-48
+              -right-32
+              h-[600px]
+              w-[600px]
+              rounded-full
+              border
+              border-white/10
+            "
+          />
 
-            {/* Phone Login */}
-            <Link href="/phone-login">
-              <button
-                className="h-12 px-5 rounded-full text-white text-xs tracking-widest font-medium flex items-center gap-2 transition-all duration-200 hover:scale-105 active:scale-95"
-                style={{
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  background: "rgba(255,255,255,0.05)",
-                }}
-              >
-                <span className="text-base">📞</span>
-                +91
-              </button>
-            </Link>
-
-            {/* Vertical separator */}
-            <div className="w-[1px] h-7 bg-white/15" />
-
-            {/* Google Login */}
-            <button
-              className="h-12 px-5 rounded-full text-white text-xs tracking-widest font-semibold flex items-center gap-2 transition-all duration-200 hover:scale-105 active:scale-95"
-              style={{
-                border: "1px solid rgba(255,255,255,0.2)",
-                background: "rgba(255,255,255,0.05)",
-              }}
-            >
-              <span
-                className="text-lg font-black"
-                style={{ fontFamily: "Georgia, serif", color: "#e7dbd0" }}
-              >
-                G
-              </span>
-              Google
-            </button>
-          </div>
-
-          {/* Register */}
-          <p className="text-center text-white/35 text-[11px] tracking-widest uppercase">
-            New here?{" "}
+          <div className="relative z-10 flex items-center justify-between">
             <Link
-              href="/register"
-              className="text-white/75 font-semibold hover:text-white transition-colors underline underline-offset-4 decoration-white/30"
+              href="/"
+              className="
+                font-serif
+                text-4xl
+                tracking-[-0.08em]
+              "
             >
-              Create Account
+              jentara
             </Link>
-          </p>
-        </div>
+
+            <div className="flex items-center gap-2 text-[9px] uppercase tracking-[0.22em] text-white/45">
+              <Sparkles size={13} />
+              New Season
+            </div>
+          </div>
+
+          <div className="relative z-10 max-w-xl">
+            <div className="mb-8 h-px w-12 bg-white/35" />
+
+            <p className="mb-5 text-[9px] font-semibold uppercase tracking-[0.35em] text-white/45">
+              Member Access
+            </p>
+
+            <h1
+              className="
+                font-serif
+                text-[76px]
+                leading-[0.8]
+                tracking-[-0.07em]
+                xl:text-[100px]
+              "
+            >
+              WELCOME
+              <br />
+              BACK.
+            </h1>
+
+            <p className="mt-8 max-w-sm text-sm leading-7 text-white/55">
+              Your wardrobe is waiting.
+              Sign in to continue exploring
+              JENTARA collections, orders and
+              saved pieces.
+            </p>
+
+            <div className="mt-10 flex flex-wrap gap-3">
+              {[
+                "Exclusive Drops",
+                "Saved Wishlist",
+                "Order Tracking",
+              ].map((item) => (
+                <span
+                  key={item}
+                  className="
+                    rounded-full
+                    border
+                    border-white/15
+                    px-4
+                    py-2
+                    text-[8px]
+                    uppercase
+                    tracking-[0.16em]
+                    text-white/45
+                  "
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative z-10">
+            <p className="text-[8px] uppercase tracking-[0.18em] text-white/25">
+              © {new Date().getFullYear()} JENTARA
+            </p>
+          </div>
+        </section>
+
+        {/* Form Side */}
+
+        <section
+          className="
+            flex
+            min-h-screen
+            items-center
+            justify-center
+            px-5
+            py-10
+            sm:px-8
+            lg:px-12
+            xl:px-20
+          "
+        >
+          <div className="w-full max-w-[440px]">
+            {/* Mobile Brand */}
+
+            <div className="mb-10 lg:hidden">
+              <Link
+                href="/"
+                className="
+                  font-serif
+                  text-4xl
+                  tracking-[-0.08em]
+                  text-[#451713]
+                "
+              >
+                jentara
+              </Link>
+
+              <div className="mt-5 h-px w-10 bg-[#451713]" />
+            </div>
+
+            <div
+              className="
+                rounded-[28px]
+                border
+                border-[#451713]/10
+                bg-[#faf6f1]
+                p-6
+                shadow-[0_25px_80px_rgba(69,23,19,0.10)]
+                sm:p-9
+                md:p-10
+              "
+            >
+              <div className="mb-8">
+                <p className="mb-3 text-[9px] font-semibold uppercase tracking-[0.3em] text-[#451713]/45">
+                  Member Access
+                </p>
+
+                <h2
+                  className="
+                    font-serif
+                    text-4xl
+                    leading-none
+                    tracking-[-0.05em]
+                    text-[#451713]
+                    sm:text-5xl
+                  "
+                >
+                  Welcome Back
+                </h2>
+
+                <p className="mt-3 text-[10px] uppercase tracking-[0.16em] text-[#151a2a]/40">
+                  Let&apos;s get you styled.
+                </p>
+              </div>
+
+              <form
+                onSubmit={handleLogin}
+                className="space-y-6"
+              >
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="
+                      mb-2
+                      block
+                      text-[9px]
+                      font-semibold
+                      uppercase
+                      tracking-[0.2em]
+                      text-[#451713]/55
+                    "
+                  >
+                    Email Address
+                  </label>
+
+                  <div
+                    className="
+                      flex
+                      items-center
+                      gap-3
+                      rounded-xl
+                      border
+                      border-[#451713]/12
+                      bg-white/60
+                      px-4
+                      py-3.5
+                      transition
+                      focus-within:border-[#451713]/50
+                      focus-within:bg-white
+                    "
+                  >
+                    <Mail
+                      size={17}
+                      className="shrink-0 text-[#451713]/40"
+                    />
+
+                    <input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(event) =>
+                        setEmail(
+                          event.target.value
+                        )
+                      }
+                      placeholder="you@example.com"
+                      className="
+                        min-w-0
+                        flex-1
+                        bg-transparent
+                        text-sm
+                        text-[#151a2a]
+                        outline-none
+                        placeholder:text-[#151a2a]/30
+                      "
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <label
+                      htmlFor="password"
+                      className="
+                        text-[9px]
+                        font-semibold
+                        uppercase
+                        tracking-[0.2em]
+                        text-[#451713]/55
+                      "
+                    >
+                      Password
+                    </label>
+
+                    <Link
+                      href="/forgot-password"
+                      className="
+                        text-[8px]
+                        font-semibold
+                        uppercase
+                        tracking-[0.12em]
+                        text-[#451713]/50
+                        transition
+                        hover:text-[#451713]
+                      "
+                    >
+                      Forgot Password?
+                    </Link>
+                  </div>
+
+                  <div
+                    className="
+                      flex
+                      items-center
+                      gap-3
+                      rounded-xl
+                      border
+                      border-[#451713]/12
+                      bg-white/60
+                      px-4
+                      py-3.5
+                      transition
+                      focus-within:border-[#451713]/50
+                      focus-within:bg-white
+                    "
+                  >
+                    <Lock
+                      size={17}
+                      className="shrink-0 text-[#451713]/40"
+                    />
+
+                    <input
+                      id="password"
+                      type={
+                        showPassword
+                          ? "text"
+                          : "password"
+                      }
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(event) =>
+                        setPassword(
+                          event.target.value
+                        )
+                      }
+                      placeholder="••••••••"
+                      className="
+                        min-w-0
+                        flex-1
+                        bg-transparent
+                        text-sm
+                        text-[#151a2a]
+                        outline-none
+                        placeholder:text-[#151a2a]/30
+                      "
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowPassword(
+                          (value) => !value
+                        )
+                      }
+                      aria-label={
+                        showPassword
+                          ? "Hide password"
+                          : "Show password"
+                      }
+                      className="
+                        shrink-0
+                        text-[#451713]/45
+                        transition
+                        hover:text-[#451713]
+                      "
+                    >
+                      {showPassword ? (
+                        <EyeOff size={17} />
+                      ) : (
+                        <Eye size={17} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {error && (
+                  <div
+                    role="alert"
+                    className="
+                      rounded-xl
+                      border
+                      border-red-900/10
+                      bg-red-50
+                      px-4
+                      py-3
+                      text-xs
+                      leading-5
+                      text-red-800
+                    "
+                  >
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="
+                    flex
+                    w-full
+                    items-center
+                    justify-between
+                    rounded-full
+                    bg-[#451713]
+                    px-6
+                    py-2
+                    text-[9px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.18em]
+                    text-white
+                    transition-all
+                    duration-300
+                    hover:bg-[#32100d]
+                    disabled:cursor-not-allowed
+                    disabled:opacity-50
+                  "
+                >
+                  <span>
+                    {loading
+                      ? "Signing In..."
+                      : "Continue"}
+                  </span>
+
+                  <span
+                    className="
+                      flex
+                      h-9
+                      w-9
+                      items-center
+                      justify-center
+                      rounded-full
+                      bg-white/10
+                    "
+                  >
+                    <ArrowRight size={15} />
+                  </span>
+                </button>
+              </form>
+
+              <div className="my-7 flex items-center gap-4">
+                <span className="h-px flex-1 bg-[#451713]/10" />
+                <span className="text-[8px] uppercase tracking-[0.25em] text-[#151a2a]/35">
+                  Or continue with
+                </span>
+                <span className="h-px flex-1 bg-[#451713]/10" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Link
+                  href="/phone-login"
+                  className="
+                    flex
+                    items-center
+                    justify-center
+                    gap-2
+                    rounded-xl
+                    border
+                    border-[#451713]/12
+                    bg-white/50
+                    px-4
+                    py-3.5
+                    text-[9px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.1em]
+                    text-[#451713]
+                    transition
+                    hover:bg-white
+                  "
+                >
+                  <span>📱</span>
+                  OTP Login
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled={googleLoading}
+                  className="
+                    flex
+                    items-center
+                    justify-center
+                    gap-2
+                    rounded-xl
+                    border
+                    border-[#451713]/12
+                    bg-white/50
+                    px-4
+                    py-3.5
+                    text-[9px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.1em]
+                    text-[#451713]
+                    transition
+                    hover:bg-white
+                    disabled:opacity-50
+                  "
+                >
+                  <span className="font-serif text-base font-bold">
+                    G
+                  </span>
+
+                  {googleLoading
+                    ? "Opening..."
+                    : "Google"}
+                </button>
+              </div>
+
+              <div className="mt-8 border-t border-[#451713]/10 pt-7 text-center">
+                <p className="text-[9px] uppercase tracking-[0.12em] text-[#151a2a]/40">
+                  New to JENTARA?
+                </p>
+
+                <Link
+                  href="/register"
+                  className="
+                    mt-2
+                    inline-block
+                    text-[10px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.16em]
+                    text-[#451713]
+                    underline
+                    underline-offset-4
+                    transition
+                    hover:opacity-60
+                  "
+                >
+                  Create Account →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }
