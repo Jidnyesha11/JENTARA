@@ -44,24 +44,6 @@ export default function ProductActions({
   return (
     <>
       <div className="mt-8">
-
-        <button
-          onClick={() =>
-            window.open(
-              "product/size-guide",
-              "_blank"
-            )
-          }
-          className="
-            text-sm
-            underline
-            text-gray-500
-            mb-4
-          "
-        >
-          📏 Size Guide
-        </button>
-
         <h3 className="font-semibold mb-4">
           Select Size
         </h3>

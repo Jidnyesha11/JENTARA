@@ -11,7 +11,8 @@ export default async function CategoriesPage() {
   let categories: Category[] = [];
 
   try {
-    categories = await getCategories();
+    categories =
+      await getCategories();
   } catch (error) {
     console.error(
       "CATEGORIES PAGE ERROR:",
@@ -36,9 +37,9 @@ export default async function CategoriesPage() {
           </h1>
 
           <p className="max-w-[390px] pb-2 text-[10px] uppercase leading-6 tracking-[0.14em] text-[#151a2a]/50 md:text-right">
-            Explore JENTARA drops, collections
-            and pieces created for the new
-            generation.
+            Explore JENTARA drops,
+            collections and pieces created
+            for the new generation.
           </p>
         </div>
       </section>
@@ -55,13 +56,27 @@ export default async function CategoriesPage() {
             </h2>
 
             <p className="mx-auto mt-4 max-w-md text-sm leading-7 text-[#151a2a]/55">
-              JENTARA collections will appear
-              here once they are added.
+              JENTARA collections will
+              appear here once they are
+              added.
             </p>
 
             <Link
-              href="/products"
-              className="mt-8 inline-flex bg-[#4a0f0f] px-7 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-[#651717]"
+              href="/shop"
+              className="
+                mt-8
+                inline-flex
+                bg-[#4a0f0f]
+                px-7
+                py-4
+                text-[10px]
+                font-semibold
+                uppercase
+                tracking-[0.18em]
+                text-white
+                transition
+                hover:bg-[#651717]
+              "
             >
               Shop All Products
             </Link>
@@ -80,17 +95,62 @@ export default async function CategoriesPage() {
                     href={`/categories/${slug}`}
                     className="group"
                   >
-                    <article className="relative min-h-[430px] overflow-hidden border border-[#4a0f0f]/15 bg-[#4a0f0f] p-8 transition duration-500 group-hover:-translate-y-1 group-hover:shadow-2xl">
-                      <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full border border-white/10 transition duration-700 group-hover:scale-125" />
+                    <article
+                      className="
+                        relative
+                        min-h-[430px]
+                        overflow-hidden
+                        border
+                        border-[#4a0f0f]/15
+                        bg-[#4a0f0f]
+                        p-8
+                        transition
+                        duration-500
+                        group-hover:-translate-y-1
+                        group-hover:shadow-2xl
+                      "
+                    >
+                      <div
+                        className="
+                          absolute
+                          -right-20
+                          -top-20
+                          h-64
+                          w-64
+                          rounded-full
+                          border
+                          border-white/10
+                          transition
+                          duration-700
+                          group-hover:scale-125
+                        "
+                      />
 
-                      <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full border border-white/10 transition duration-700 group-hover:scale-125" />
+                      <div
+                        className="
+                          absolute
+                          -bottom-24
+                          -left-20
+                          h-72
+                          w-72
+                          rounded-full
+                          border
+                          border-white/10
+                          transition
+                          duration-700
+                          group-hover:scale-125
+                        "
+                      />
 
                       <div className="relative z-10 flex h-full min-h-[370px] flex-col justify-between">
                         <div className="flex items-start justify-between">
                           <span className="font-serif text-3xl text-[#f5ede4]/50">
                             {String(
                               index + 1
-                            ).padStart(2, "0")}
+                            ).padStart(
+                              2,
+                              "0"
+                            )}
                           </span>
 
                           <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#f5ede4]/50">

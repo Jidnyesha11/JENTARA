@@ -29,7 +29,9 @@ export default async function CategoryPage({
   }
 
   const products =
-    await getProductsByCategorySlug(slug);
+    await getProductsByCategorySlug(
+      slug
+    );
 
   return (
     <main className="min-h-screen bg-[#f5ede4] text-[#151a2a]">
@@ -37,7 +39,15 @@ export default async function CategoryPage({
         <div className="mb-8 flex items-center gap-3">
           <Link
             href="/categories"
-            className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#4a0f0f]/60 transition hover:text-[#4a0f0f]"
+            className="
+              text-[9px]
+              font-semibold
+              uppercase
+              tracking-[0.2em]
+              text-[#4a0f0f]/60
+              transition
+              hover:text-[#4a0f0f]
+            "
           >
             Categories
           </Link>
@@ -69,8 +79,16 @@ export default async function CategoryPage({
             </p>
 
             <Link
-              href="/products"
-              className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#4a0f0f] underline underline-offset-4"
+              href="/shop"
+              className="
+                text-[9px]
+                font-semibold
+                uppercase
+                tracking-[0.18em]
+                text-[#4a0f0f]
+                underline
+                underline-offset-4
+              "
             >
               View All Products
             </Link>
@@ -90,35 +108,56 @@ export default async function CategoryPage({
             </h2>
 
             <p className="mx-auto mt-4 max-w-md text-sm leading-7 text-[#151a2a]/55">
-              There are currently no products
-              available in this collection.
+              There are currently no
+              products available in this
+              collection.
             </p>
 
             <Link
-              href="/products"
-              className="mt-8 inline-flex bg-[#4a0f0f] px-7 py-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-[#651717]"
+              href="/shop"
+              className="
+                mt-8
+                inline-flex
+                bg-[#4a0f0f]
+                px-7
+                py-4
+                text-[10px]
+                font-semibold
+                uppercase
+                tracking-[0.18em]
+                text-white
+                transition
+                hover:bg-[#651717]
+              "
             >
               Continue Shopping
             </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={{
-                  id: product.id,
-                  name: product.name,
-                  slug: product.slug ?? "",
-                  price: Number(
-                    product.price
-                  ),
-                  image_url:
-                    product.image_url ??
-                    "",
-                }}
-              />
-            ))}
+            {products.map(
+              (product) => (
+                <ProductCard
+                  key={product.id}
+                  product={{
+                    id: product.id,
+                    name: product.name,
+                    slug:
+                      product.slug ?? "",
+                    price: Number(
+                      product.price
+                    ),
+                    image_url:
+                      product.image_url ??
+                      "",
+                    stock:
+                      product.stock,
+                    size_inventory:
+                      product.size_inventory,
+                  }}
+                />
+              )
+            )}
           </div>
         )}
       </section>

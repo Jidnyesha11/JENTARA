@@ -5,7 +5,7 @@ import { getProductImages } from "@/lib/supabase/product-images";
 
 import ProductGallery from "@/components/products/ProductGallery";
 import ProductActions from "@/components/products/ProductActions";
-import { Link } from "lucide-react";
+import Link from "next/link";
 
 interface Props {
   params: Promise<{

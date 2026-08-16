@@ -1,19 +1,21 @@
+// components/products/CategoryFilter.tsx
+
 "use client";
 
 import { useEffect, useState } from "react";
 
-import { getCategories } from "@/lib/supabase/categories";
+import {
+  getCategories,
+  type Category,
+} from "@/lib/supabase/categories";
+
 import { useCategoryStore } from "@/store/categoryStore";
 
-interface Category {
-  id: string;
-  name: string;
-  slug: string;
-}
-
 export default function CategoryFilter() {
-  const [categories, setCategories] =
-    useState<Category[]>([]);
+  const [
+    categories,
+    setCategories,
+  ] = useState<Category[]>([]);
 
   const selectedCategory =
     useCategoryStore(
@@ -28,28 +30,53 @@ export default function CategoryFilter() {
     );
 
   useEffect(() => {
-    getCategories().then(
-      (data) =>
-        setCategories(
-          data as Category[]
-        )
-    );
+    let mounted = true;
+
+    async function loadCategories() {
+      try {
+        const data =
+          await getCategories();
+
+        if (mounted) {
+          setCategories(data);
+        }
+      } catch (error) {
+        console.error(
+          "CATEGORY FILTER ERROR:",
+          error
+        );
+      }
+    }
+
+    loadCategories();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return (
     <select
       value={selectedCategory}
-      onChange={(e) =>
+      onChange={(event) =>
         setSelectedCategory(
-          e.target.value
+          event.target.value
         )
       }
+      aria-label="Filter by category"
       className="
-        border
+        w-full
         rounded-xl
+        border
+        border-[#451713]/15
+        bg-[#faf5ef]
         px-4
         py-3
-        w-full
+        text-sm
+        text-[#151a2a]
+        outline-none
+        transition
+        focus:border-[#451713]
       "
     >
       <option value="all">

@@ -1,10 +1,12 @@
+// components/layout/Footer.tsx
+
 import Link from "next/link";
 import NewsletterForm from "@/components/layout/NewsletterForm";
 
 const resources = [
   {
     label: "Order Tracking",
-    href: "/track-order",
+    href: "/order-tracking",
   },
   {
     label: "Return & Exchange",
@@ -20,6 +22,10 @@ const quickLinks = [
   {
     label: "FAQ",
     href: "/faq",
+  },
+  {
+    label: "Size Guide",
+    href: "/size-guide",
   },
   {
     label: "Privacy Policy",
@@ -169,11 +175,16 @@ export default function Footer() {
         text-[#f5eee6]
       "
     >
-      <div className="mx-auto max-w-[1500px] px-6 sm:px-8 lg:px-10">
-
-        {/* =====================================================
-            FOOTER TOP
-        ===================================================== */}
+      <div
+        className="
+          mx-auto
+          max-w-[1500px]
+          px-6
+          sm:px-8
+          lg:px-10
+        "
+      >
+        {/* Footer Top */}
 
         <div
           className="
@@ -188,6 +199,7 @@ export default function Footer() {
           "
         >
           {/* Resources */}
+
           <FooterSection title="Resources">
             {resources.map((link) => (
               <FooterLink
@@ -197,7 +209,14 @@ export default function Footer() {
               />
             ))}
 
-            <div className="mt-9 border-t border-[#f5eee6]/15 pt-7">
+            <div
+              className="
+                mt-9
+                border-t
+                border-[#f5eee6]/15
+                pt-7
+              "
+            >
               <p
                 className="
                   mb-4
@@ -210,14 +229,16 @@ export default function Footer() {
               >
                 Popular Search
               </p>
+
               <FooterLink
-                href="/products"
+                href="/shop"
                 label="Oversized Tees"
               />
             </div>
           </FooterSection>
 
           {/* Quick Links */}
+
           <FooterSection title="Quick Links">
             {quickLinks.map((link) => (
               <FooterLink
@@ -229,6 +250,7 @@ export default function Footer() {
           </FooterSection>
 
           {/* Follow Us */}
+
           <FooterSection title="Follow Us">
             <div className="space-y-4">
               <SocialLink
@@ -247,7 +269,16 @@ export default function Footer() {
               />
             </div>
 
-            <p className="mt-8 max-w-[220px] text-[9px] leading-5 tracking-[0.05em] text-[#f5eee6]/45">
+            <p
+              className="
+                mt-8
+                max-w-[220px]
+                text-[9px]
+                leading-5
+                tracking-[0.05em]
+                text-[#f5eee6]/45
+              "
+            >
               Follow JENTARA for new drops,
               styling inspiration and exclusive
               updates.
@@ -255,6 +286,7 @@ export default function Footer() {
           </FooterSection>
 
           {/* Contact */}
+
           <FooterSection title="Contact Us">
             <p
               className="
@@ -272,7 +304,14 @@ export default function Footer() {
 
             <div className="mt-5 space-y-3">
               <div>
-                <p className="text-[8px] uppercase tracking-[0.16em] text-[#f5eee6]/40">
+                <p
+                  className="
+                    text-[8px]
+                    uppercase
+                    tracking-[0.16em]
+                    text-[#f5eee6]/40
+                  "
+                >
                   Phone
                 </p>
 
@@ -293,7 +332,14 @@ export default function Footer() {
               </div>
 
               <div>
-                <p className="text-[8px] uppercase tracking-[0.16em] text-[#f5eee6]/40">
+                <p
+                  className="
+                    text-[8px]
+                    uppercase
+                    tracking-[0.16em]
+                    text-[#f5eee6]/40
+                  "
+                >
                   Email
                 </p>
 
@@ -314,7 +360,14 @@ export default function Footer() {
               </div>
 
               <div>
-                <p className="text-[8px] uppercase tracking-[0.16em] text-[#f5eee6]/40">
+                <p
+                  className="
+                    text-[8px]
+                    uppercase
+                    tracking-[0.16em]
+                    text-[#f5eee6]/40
+                  "
+                >
                   Working Hours
                 </p>
 
@@ -360,11 +413,13 @@ export default function Footer() {
               "
             >
               WhatsApp Support
+
               <span>→</span>
             </a>
           </FooterSection>
 
           {/* Visit Us */}
+
           <FooterSection title="Visit Us">
             <p
               className="
@@ -381,11 +436,27 @@ export default function Footer() {
             </p>
 
             <div className="mt-5">
-              <p className="text-[8px] uppercase tracking-[0.16em] text-[#f5eee6]/40">
+              <p
+                className="
+                  text-[8px]
+                  uppercase
+                  tracking-[0.16em]
+                  text-[#f5eee6]/40
+                "
+              >
                 Store
               </p>
 
-              <p className="mt-2 text-[10px] uppercase leading-6 tracking-[0.04em] text-[#f5eee6]/70">
+              <p
+                className="
+                  mt-2
+                  text-[10px]
+                  uppercase
+                  leading-6
+                  tracking-[0.04em]
+                  text-[#f5eee6]/70
+                "
+              >
                 Store details coming soon.
               </p>
             </div>
@@ -420,77 +491,75 @@ export default function Footer() {
           </FooterSection>
         </div>
 
-        {/* =====================================================
-            NEWSLETTER
-        ===================================================== */}
+        {/* Newsletter */}
 
         <div
-  className="
-    border-t
-    border-[#f5eee6]/15
-    border-b
-    py-10
-    lg:py-12
-  "
->
-  <div
-    className="
-      flex
-      flex-col
-      gap-7
-      lg:flex-row
-      lg:items-end
-      lg:justify-between
-    "
-  >
-    <div>
-      <p
-        className="
-          text-[9px]
-          font-bold
-          uppercase
-          tracking-[0.18em]
-          text-[#f5eee6]/50
-        "
-      >
-        Stay In The Loop
-      </p>
+          className="
+            border-b
+            border-t
+            border-[#f5eee6]/15
+            py-10
+            lg:py-12
+          "
+        >
+          <div
+            className="
+              flex
+              flex-col
+              gap-7
+              lg:flex-row
+              lg:items-end
+              lg:justify-between
+            "
+          >
+            <div>
+              <p
+                className="
+                  text-[9px]
+                  font-bold
+                  uppercase
+                  tracking-[0.18em]
+                  text-[#f5eee6]/50
+                "
+              >
+                Stay In The Loop
+              </p>
 
-      <h2
-        className="
-          mt-3
-          max-w-[600px]
-          font-serif
-          text-3xl
-          leading-none
-          tracking-[-0.04em]
-          sm:text-4xl
-        "
-      >
-        Be the first to know.
-      </h2>
+              <h2
+                className="
+                  mt-3
+                  max-w-[600px]
+                  font-serif
+                  text-3xl
+                  leading-none
+                  tracking-[-0.04em]
+                  sm:text-4xl
+                "
+              >
+                Be the first to know.
+              </h2>
 
-      <p
-        className="
-          mt-3
-          max-w-[520px]
-          text-[10px]
-          leading-5
-          tracking-[0.03em]
-          text-[#f5eee6]/50
-        "
-      >
-        Sign up for new arrivals, exclusive
-        drops, offers and JENTARA updates.
-      </p>
-    </div>
+              <p
+                className="
+                  mt-3
+                  max-w-[520px]
+                  text-[10px]
+                  leading-5
+                  tracking-[0.03em]
+                  text-[#f5eee6]/50
+                "
+              >
+                Sign up for new arrivals,
+                exclusive drops, offers and
+                JENTARA updates.
+              </p>
+            </div>
 
-    <NewsletterForm />
-  </div>
-</div>
-        {/* =====================================================
-            BOTTOM
-        ===================================================== */}
+            <NewsletterForm />
+          </div>
+        </div>
+
+        {/* Bottom */}
 
         <div
           className="
@@ -535,7 +604,14 @@ export default function Footer() {
             aria-label="JENTARA Home"
             className="group"
           >
-            <div className="flex flex-col items-start lg:items-end">
+            <div
+              className="
+                flex
+                flex-col
+                items-start
+                lg:items-end
+              "
+            >
               <span
                 className="
                   mb-[-6px]

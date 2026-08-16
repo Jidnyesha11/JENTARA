@@ -1,3 +1,5 @@
+// components/products/SortFilter.tsx
+
 "use client";
 
 import { useSortStore } from "@/store/sortStore";
@@ -15,21 +17,33 @@ export default function SortFilter() {
   return (
     <select
       value={sortBy}
-      onChange={(e) =>
+      onChange={(event) =>
         setSortBy(
-          e.target.value
+          event.target.value
         )
       }
+      aria-label="Sort products"
       className="
-        border
+        w-full
         rounded-xl
+        border
+        border-[#451713]/15
+        bg-[#faf5ef]
         px-4
         py-3
-        w-full
+        text-sm
+        text-[#151a2a]
+        outline-none
+        transition
+        focus:border-[#451713]
       "
     >
       <option value="newest">
         Newest
+      </option>
+
+      <option value="featured">
+        Featured
       </option>
 
       <option value="low-high">

@@ -1,3 +1,5 @@
+// components/products/ProductCard.tsx
+
 "use client";
 
 import Image from "next/image";
@@ -12,10 +14,11 @@ interface Product {
   slug: string;
   price: number;
   image_url: string;
+  stock?: number | null;
   size_inventory?: Record<
     string,
     number
-  >;
+  > | null;
 }
 
 interface Props {
@@ -27,37 +30,48 @@ export default function ProductCard({
 }: Props) {
   const router = useRouter();
 
-  const totalStock =
+  const sizeInventoryTotal =
     Object.values(
       product.size_inventory ?? {}
     ).reduce<number>(
-      (total, qty) =>
-        total + Number(qty),
+      (total, quantity) =>
+        total + Number(quantity || 0),
       0
     );
 
+  const totalStock =
+    product.size_inventory &&
+    Object.keys(product.size_inventory)
+      .length > 0
+      ? sizeInventoryTotal
+      : Number(product.stock ?? 0);
+
+  const isInStock =
+    totalStock > 0;
+
   return (
-    <div
+    <article
       className="
-        border
-        rounded-xl
         overflow-hidden
+        rounded-xl
+        border
         bg-white
         shadow-sm
-        hover:shadow-lg
         transition-all
         duration-300
+        hover:shadow-lg
       "
     >
       <Link
         href={`/product/${product.slug}`}
+        className="block"
       >
         <div
           className="
             relative
             aspect-square
-            bg-neutral-100
             overflow-hidden
+            bg-neutral-100
           "
         >
           {product.image_url ? (
@@ -65,16 +79,28 @@ export default function ProductCard({
               src={product.image_url}
               alt={product.name}
               fill
-              className="object-cover"
+              sizes="
+                (max-width: 640px) 100vw,
+                (max-width: 1024px) 50vw,
+                25vw
+              "
+              className="
+                object-cover
+                transition-transform
+                duration-500
+                hover:scale-105
+              "
             />
           ) : (
             <div
               className="
-                w-full
-                h-full
                 flex
+                h-full
+                w-full
                 items-center
                 justify-center
+                text-sm
+                text-neutral-400
               "
             >
               No Image
@@ -89,8 +115,9 @@ export default function ProductCard({
         >
           <h3
             className="
-              font-semibold
               text-lg
+              font-semibold
+              transition-colors
               hover:text-neutral-600
             "
           >
@@ -98,13 +125,7 @@ export default function ProductCard({
           </h3>
         </Link>
 
-        <p
-          className="
-            text-xl
-            font-bold
-            mt-2
-          "
-        >
+        <p className="mt-2 text-xl font-bold">
           ₹{product.price}
         </p>
 
@@ -114,26 +135,21 @@ export default function ProductCard({
             text-sm
             font-medium
             ${
-              totalStock > 0
+              isInStock
                 ? "text-green-600"
                 : "text-red-600"
             }
           `}
         >
-          {totalStock > 0
+          {isInStock
             ? "✓ In Stock"
             : "Out Of Stock"}
         </p>
 
-        <div
-          className="
-            flex
-            gap-3
-            mt-4
-          "
-        >
-          {totalStock > 0 ? (
+        <div className="mt-4 flex gap-3">
+          {isInStock ? (
             <button
+              type="button"
               onClick={() =>
                 router.push(
                   `/product/${product.slug}`
@@ -141,14 +157,14 @@ export default function ProductCard({
               }
               className="
                 flex-1
+                rounded-lg
                 border
                 border-black
                 bg-black
-                text-white
                 px-4
                 py-3
-                rounded-lg
                 font-medium
+                text-white
                 transition-all
                 duration-300
                 hover:bg-white
@@ -159,15 +175,17 @@ export default function ProductCard({
             </button>
           ) : (
             <button
+              type="button"
               disabled
               className="
                 flex-1
+                cursor-not-allowed
+                rounded-lg
                 bg-red-500
-                text-white
                 px-4
                 py-3
-                rounded-lg
-                cursor-not-allowed
+                font-medium
+                text-white
                 opacity-80
               "
             >
@@ -176,10 +194,15 @@ export default function ProductCard({
           )}
 
           <AddToWishlistButton
-            product={product}
+            product={{
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              image_url: product.image_url,
+            }}
           />
         </div>
       </div>
-    </div>
+    </article>
   );
 }
