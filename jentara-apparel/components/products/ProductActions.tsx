@@ -48,7 +48,7 @@ export default function ProductActions({
         <button
           onClick={() =>
             window.open(
-              "/size-chart.jpg",
+              "product/size-guide",
               "_blank"
             )
           }

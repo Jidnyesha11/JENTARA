@@ -1,162 +1,295 @@
+// components/layout/Navbar.tsx
+
 "use client";
 
 import Link from "next/link";
-import { Heart, ShoppingBag } from "lucide-react";
+import { usePathname } from "next/navigation";
 
-import { useAuth } from "@/hooks/useAuth";
-import { signOut } from "@/lib/supabase/auth";
-import { useRouter } from "next/navigation";
+import CategoriesMenu from "@/components/layout/CategoriesMenu";
 
-import { useCartStore } from "@/store/cartStore";
-import { useWishlistStore } from "@/store/wishlistStore";
+const navigation = [
+  {
+    label: "Home",
+    href: "/",
+  },
+  {
+    label: "Shop",
+    href: "/shop",
+  },
+  {
+    label: "About Us",
+    href: "/about",
+  },
+  {
+    label: "Contact Us",
+    href: "/contact",
+  },
+];
 
 export default function Navbar() {
-  const router = useRouter();
+  const pathname = usePathname();
 
-const { user } = useAuth();
+  function isActive(href: string) {
+    if (href === "/") {
+      return pathname === "/";
+    }
 
-async function handleLogout() {
-  await signOut();
-  router.push("/");
-}
-  const cartItems = useCartStore(
-  (state) => state.items
-);
+    return pathname.startsWith(href);
+  }
 
-const wishlistItems =
-  useWishlistStore(
-    (state) => state.items
-  );
+  const categoriesActive =
+    pathname === "/categories" ||
+    pathname.startsWith("/categories/");
 
-const cartCount =
-  cartItems.reduce(
-    (total, item) =>
-      total + item.quantity,
-    0
-  );
-
-const wishlistCount =
-  wishlistItems.length;
-  
   return (
-    <header className="sticky top-0 z-50 bg-white border-b">
-      <div className="container mx-auto px-4">
-        <div className="h-20 flex items-center justify-between">
+    <header
+      className="
+        sticky
+        top-0
+        z-50
+        border-b
+        border-[#451713]/10
+        bg-[#f5ede4]/95
+        backdrop-blur-md
+      "
+    >
+      <div className="mx-auto max-w-[1500px] px-5 sm:px-8">
+        <div
+          className="
+            relative
+            flex
+            h-[76px]
+            items-center
+            justify-between
+            md:h-[88px]
+          "
+        >
+          {/* Desktop Navigation */}
+
+          <nav
+            className="
+              hidden
+              md:block
+            "
+          >
+            <div
+              className="
+                flex
+                items-center
+                gap-7
+                lg:gap-9
+              "
+            >
+              {navigation
+                .slice(0, 2)
+                .map((item) => {
+                  const active =
+                    isActive(item.href);
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`
+                        relative
+                        text-[9px]
+                        font-semibold
+                        uppercase
+                        tracking-[0.13em]
+                        transition-all
+                        duration-300
+                        ${
+                          active
+                            ? "text-[#451713]"
+                            : "text-[#451713]/55 hover:text-[#451713]"
+                        }
+                      `}
+                    >
+                      {item.label}
+
+                      <span
+                        className={`
+                          absolute
+                          -bottom-2
+                          left-0
+                          h-px
+                          bg-[#451713]
+                          transition-all
+                          duration-300
+                          ${
+                            active
+                              ? "w-full"
+                              : "w-0"
+                          }
+                        `}
+                      />
+                    </Link>
+                  );
+                })}
+
+              {/* Categories */}
+
+              <div
+                className={`
+                  relative
+                  ${
+                    categoriesActive
+                      ? "text-[#451713]"
+                      : ""
+                  }
+                `}
+              >
+                <CategoriesMenu />
+              </div>
+
+              {navigation
+                .slice(2)
+                .map((item) => {
+                  const active =
+                    isActive(item.href);
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`
+                        relative
+                        text-[9px]
+                        font-semibold
+                        uppercase
+                        tracking-[0.13em]
+                        transition-all
+                        duration-300
+                        ${
+                          active
+                            ? "text-[#451713]"
+                            : "text-[#451713]/55 hover:text-[#451713]"
+                        }
+                      `}
+                    >
+                      {item.label}
+
+                      <span
+                        className={`
+                          absolute
+                          -bottom-2
+                          left-0
+                          h-px
+                          bg-[#451713]
+                          transition-all
+                          duration-300
+                          ${
+                            active
+                              ? "w-full"
+                              : "w-0"
+                          }
+                        `}
+                      />
+                    </Link>
+                  );
+                })}
+            </div>
+          </nav>
+
+          {/* Mobile Categories */}
+
+          <Link
+            href="/categories"
+            className={`
+              text-[9px]
+              font-semibold
+              uppercase
+              tracking-[0.12em]
+              transition
+              md:hidden
+              ${
+                categoriesActive
+                  ? "text-[#451713]"
+                  : "text-[#451713]/60"
+              }
+            `}
+          >
+            Categories
+          </Link>
+
+          {/* Logo */}
 
           <Link
             href="/"
-            className="text-4xl font-bold tracking-wide text-[#4b1e1e]"
+            aria-label="JENTARA Home"
+            className="
+              absolute
+              left-1/2
+              top-1/2
+              -translate-x-1/2
+              -translate-y-1/2
+            "
           >
-            JENTARA
+            <span
+              className="
+                font-serif
+                text-[38px]
+                font-semibold
+                lowercase
+                leading-none
+                tracking-[-0.09em]
+                text-[#451713]
+                md:text-[46px]
+              "
+            >
+              jentara
+            </span>
           </Link>
 
-          <nav className="hidden md:flex gap-10 text-lg font-medium">
-            <Link href="/">Home</Link>
-            <Link href="/shop">Shop</Link>
-            <Link href="/women">Women</Link>
-            <Link href="/men">Men</Link>
-            <Link href="/about">About</Link>
-          </nav>
+          {/* Right Actions */}
 
-          <div className="flex items-center gap-5">
+          <div
+            className="
+              ml-auto
+              flex
+              items-center
+              gap-4
+              sm:gap-5
+            "
+          >
             <Link
-  href="/wishlist"
-  className="relative"
->
-  <Heart size={22} />
+              href="/products"
+              aria-label="Search products"
+              className="
+                text-[20px]
+                text-[#451713]
+                transition-opacity
+                hover:opacity-50
+              "
+            >
+              ⌕
+            </Link>
 
-  {wishlistCount > 0 && (
-    <span
-      className="
-      absolute
-      -top-2
-      -right-2
-      bg-red-500
-      text-white
-      text-xs
-      rounded-full
-      w-5
-      h-5
-      flex
-      items-center
-      justify-center
-    "
-    >
-      {wishlistCount}
-    </span>
-  )}
-</Link>
-           <Link
-  href="/cart"
-  className="relative"
->
-  <ShoppingBag size={22} />
+            <Link
+              href="/wishlist"
+              aria-label="Wishlist"
+              className="
+                text-[21px]
+                text-[#451713]
+                transition-opacity
+                hover:opacity-50
+              "
+            >
+              ♡
+            </Link>
 
-  {cartCount > 0 && (
-    <span
-      className="
-      absolute
-      -top-2
-      -right-2
-      bg-black
-      text-white
-      text-xs
-      rounded-full
-      w-5
-      h-5
-      flex
-      items-center
-      justify-center
-    "
-    >
-      {cartCount}
-    </span>
-  )}
-</Link>
-           {user ? (
-  <div className="flex items-center gap-4">
-
-    <Link
-      href="/orders"
-      className="text-sm font-medium"
-    >
-      Orders
-    </Link>
-
-    <Link
-      href="/profile"
-      className="text-sm font-medium"
-    >
-      Profile
-    </Link>
-
-    <button
-      onClick={handleLogout}
-      className="text-sm font-medium"
-    >
-      Logout
-    </button>
-
-  </div>
-) : (
-  <div className="flex items-center gap-4">
-
-    <Link
-      href="/login"
-      className="text-sm font-medium"
-    >
-      Login
-    </Link>
-
-    <Link
-      href="/register"
-      className="text-sm font-medium"
-    >
-      Register
-    </Link>
-
-  </div>
-)} 
+            <Link
+              href="/cart"
+              aria-label="Shopping cart"
+              className="
+                text-[19px]
+                text-[#451713]
+                transition-opacity
+                hover:opacity-50
+              "
+            >
+              🛍
+            </Link>
           </div>
         </div>
       </div>

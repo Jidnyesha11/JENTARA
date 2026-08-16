@@ -1,20 +1,37 @@
+// app/layout.tsx
+
 import "./globals.css";
 import type { Metadata } from "next";
 
-import { Playfair_Display, Poppins } from "next/font/google";
+import {
+  Playfair_Display,
+  Poppins,
+} from "next/font/google";
 
-export const playfair = Playfair_Display({
-  subsets: ["latin"],
-});
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
-export const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-});
+export const playfair =
+  Playfair_Display({
+    subsets: ["latin"],
+  });
+
+export const poppins =
+  Poppins({
+    subsets: ["latin"],
+    weight: [
+      "300",
+      "400",
+      "500",
+      "600",
+      "700",
+    ],
+  });
 
 export const metadata: Metadata = {
   title: "Jentara Apparel",
-  description: "Premium Streetwear Brand",
+  description:
+    "Premium Streetwear Brand",
 };
 
 export default function RootLayout({
@@ -24,10 +41,16 @@ export default function RootLayout({
 }) {
   return (
     <html
-  lang="en"
-  data-scroll-behavior="smooth"
+      lang="en"
+      data-scroll-behavior="smooth"
     >
-      <body>{children}</body>
+      <body className={poppins.className}>
+        <Navbar />
+
+        {children}
+
+        <Footer />
+      </body>
     </html>
   );
 }

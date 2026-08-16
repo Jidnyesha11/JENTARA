@@ -5,6 +5,7 @@ import { getProductImages } from "@/lib/supabase/product-images";
 
 import ProductGallery from "@/components/products/ProductGallery";
 import ProductActions from "@/components/products/ProductActions";
+import { Link } from "lucide-react";
 
 interface Props {
   params: Promise<{
@@ -197,6 +198,37 @@ export default async function ProductPage({
                 </li>
               </ul>
             </div>
+
+            <div className="mb-4 flex items-center justify-between">
+  <h3
+    className="
+      text-[10px]
+      font-semibold
+      uppercase
+      tracking-[0.18em]
+      text-[#451713]
+    "
+  >
+    Select Size
+  </h3>
+
+  <Link
+    href="/size-guide"
+    className="
+      text-[9px]
+      font-semibold
+      uppercase
+      tracking-[0.14em]
+      text-[#451713]
+      underline
+      underline-offset-4
+      transition-opacity
+      hover:opacity-50
+    "
+  >
+    Size Guide →
+  </Link>
+</div>
 
             {totalStock > 0 ? (
               <ProductActions
