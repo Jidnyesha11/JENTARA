@@ -1,9 +1,14 @@
+
 "use client";
 
 import { useState } from "react";
+import { ArrowUpRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import AddToWishlistButton from "./AddToWishlistButton";
 import AddToCartButton from "@/app/product/[slug]/AddToCartButton";
+
+import { useCartStore } from "@/store/cartStore";
 
 interface Props {
   product: {
@@ -13,142 +18,185 @@ interface Props {
     image_url: string;
   };
 
-  sizeInventory: {
-    XS?: number;
-    S?: number;
-    M?: number;
-    L?: number;
-    XL?: number;
-    XXL?: number;
-  };
+  sizeInventory: Record<string, number>;
 }
+
+const SIZES = [
+  "XS",
+  "S",
+  "M",
+  "L",
+  "XL",
+  "XXL",
+];
 
 export default function ProductActions({
   product,
   sizeInventory,
 }: Props) {
+  const router = useRouter();
+
   const [
     selectedSize,
     setSelectedSize,
   ] = useState("");
 
-  const allSizes = [
-    "XS",
-    "S",
-    "M",
-    "L",
-    "XL",
-    "XXL",
-  ];
+  const addItem = useCartStore(
+    (state) => state.addItem
+  );
+
+  function handleBuyNow() {
+    if (!selectedSize) {
+      alert("Please select a size first.");
+      return;
+    }
+
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image_url: product.image_url,
+      size: selectedSize,
+    });
+
+    router.push("/checkout");
+  }
 
   return (
-    <>
-      <div className="mt-8">
-        <h3 className="font-semibold mb-4">
-          Select Size
-        </h3>
+    <div className="mt-9">
+      {/* Size header */}
 
-        <div className="flex flex-wrap gap-3">
+      <div className="flex items-end justify-between border-b border-[#451713]/20 pb-3">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em]">
+            Select Size
+          </p>
 
-          {allSizes.map((size) => {
-            const quantity =
-              Number(
-                sizeInventory[
-                  size as keyof typeof sizeInventory
-                ] ?? 0
-              );
-
-            const available =
-              quantity > 0;
-
-            return (
-              <button
-                key={size}
-                disabled={!available}
-                onClick={() =>
-                  setSelectedSize(
-                    size
-                  )
-                }
-                className={`
-                  w-16
-                  h-16
-                  border
-                  rounded-lg
-                  font-medium
-                  transition-all
-
-                  ${
-                    selectedSize ===
-                    size
-                      ? "bg-black text-white border-black"
-                      : "bg-white text-black"
-                  }
-
-                  ${
-                    !available
-                      ? "opacity-40 cursor-not-allowed bg-neutral-100"
-                      : "hover:border-black"
-                  }
-                `}
-              >
-                <div
-                  className="
-                    flex
-                    flex-col
-                    items-center
-                    justify-center
-                    text-xs
-                  "
-                >
-                  <span>
-                    {size}
-                  </span>
-
-                </div>
-              </button>
-            );
-          })}
-
+          <p className="mt-1.5 text-[10px] text-[#451713]/45">
+            {selectedSize
+              ? `Size ${selectedSize} selected`
+              : "Choose your usual fit"}
+          </p>
         </div>
 
-        {selectedSize && (
-          <p className="mt-4 text-sm text-neutral-500">
-            Selected Size:
-            {" "}
-            <span className="font-semibold">
-              {selectedSize}
-            </span>
-          </p>
-        )}
+        <a
+          href="/size-guide"
+          className="text-[9px] font-semibold uppercase tracking-[0.15em] underline underline-offset-4"
+        >
+          Size Guide
+        </a>
       </div>
 
-      <div
-        className="
-          flex
-          gap-4
-          mt-10
-          items-center
-        "
-      >
-        <div className="flex-1">
+      {/* Sizes */}
 
-          <AddToCartButton
-            id={product.id}
-            name={product.name}
-            price={product.price}
-            image_url={
-              product.image_url
+      <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
+        {SIZES.map((size) => {
+          const quantity = Number(
+            sizeInventory[size] ?? 0
+          );
+
+          const available = quantity > 0;
+          const selected =
+            selectedSize === size;
+
+          return (
+            <button
+              key={size}
+              type="button"
+              disabled={!available}
+              onClick={() =>
+                setSelectedSize(size)
+              }
+              aria-label={`Select size ${size}`}
+              aria-pressed={selected}
+              className={`
+                relative
+                h-12
+                border
+                text-[10px]
+                font-semibold
+                uppercase
+                tracking-[0.08em]
+                transition-all
+                sm:h-14
+                ${
+                  selected
+                    ? "border-[#451713] bg-[#451713] text-[#f5ede4]"
+                    : available
+                      ? "border-[#451713]/20 bg-transparent hover:border-[#451713]"
+                      : "cursor-not-allowed border-[#451713]/10 bg-[#451713]/5 text-[#451713]/25"
+                }
+              `}
+            >
+              {size}
+
+              {!available && (
+                <span className="absolute left-1/2 top-1/2 h-px w-12 -translate-x-1/2 -rotate-[25deg] bg-[#451713]/25" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Primary CTA */}
+
+      <div className="mt-6">
+        <button
+          type="button"
+          disabled={!selectedSize}
+          onClick={handleBuyNow}
+          className={`
+            flex
+            min-h-[58px]
+            w-full
+            items-center
+            justify-center
+            gap-3
+            px-6
+            text-[11px]
+            font-semibold
+            uppercase
+            tracking-[0.22em]
+            transition-all
+            ${
+              selectedSize
+                ? "bg-[#451713] text-[#f5ede4] hover:bg-[#5c211b]"
+                : "cursor-not-allowed bg-[#451713]/12 text-[#451713]/35"
             }
-            size={selectedSize}
-          />
+          `}
+        >
+          Buy Now
 
-        </div>
+          <ArrowUpRight
+            size={16}
+            strokeWidth={1.5}
+          />
+        </button>
+      </div>
+
+      {/* Secondary CTA + wishlist */}
+
+      <div className="mt-2 grid grid-cols-[1fr_58px] gap-2">
+        <AddToCartButton
+          id={product.id}
+          name={product.name}
+          price={product.price}
+          image_url={product.image_url}
+          size={selectedSize}
+        />
 
         <AddToWishlistButton
           product={product}
         />
       </div>
-    </>
+
+      {/* CTA reassurance */}
+
+      <p className="mt-4 text-center text-[9px] leading-5 text-[#451713]/45">
+        Secure payment · Easy returns ·
+        Free shipping above ₹999
+      </p>
+    </div>
   );
 }
+

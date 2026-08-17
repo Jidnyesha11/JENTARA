@@ -2,42 +2,27 @@
 
 "use client";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { UserRound } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "@/lib/supabase/auth";
 
 export default function ProfileMenu() {
-  const {
-    user,
-    loading,
-  } = useAuth();
+  const router = useRouter();
+  const { user, loading } = useAuth();
 
-  const [
-    open,
-    setOpen,
-  ] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  const menuRef =
-    useRef<HTMLDivElement | null>(
-      null
-    );
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleOutsideClick(
-      event: MouseEvent
-    ) {
+    function handleOutsideClick(event: MouseEvent) {
       if (
         menuRef.current &&
         !menuRef.current.contains(
-          event.target as Node
+          event.target as Node,
         )
       ) {
         setOpen(false);
@@ -46,72 +31,126 @@ export default function ProfileMenu() {
 
     document.addEventListener(
       "mousedown",
-      handleOutsideClick
+      handleOutsideClick,
     );
 
     return () => {
       document.removeEventListener(
         "mousedown",
-        handleOutsideClick
+        handleOutsideClick,
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener(
+      "keydown",
+      handleEscape,
+    );
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleEscape,
       );
     };
   }, []);
 
   async function handleLogout() {
-    await signOut();
+    try {
+      setOpen(false);
 
-    setOpen(false);
+      await signOut();
 
-    window.location.href = "/";
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      console.error(
+        "PROFILE LOGOUT ERROR:",
+        error,
+      );
+    }
   }
 
-  if (loading) {
-    return (
-      <div
-        className="
-          h-9
-          w-9
-          animate-pulse
-          rounded-full
-          bg-[#451713]/10
-        "
-      />
-    );
-  }
+  const email = user?.email ?? "";
+
+  const initial =
+    email.charAt(0).toUpperCase() || "J";
 
   return (
     <div
       ref={menuRef}
       className="relative"
     >
+      {/* Profile trigger */}
+
       <button
         type="button"
-        onClick={() =>
-          setOpen((value) => !value)
+        aria-label={
+          user
+            ? "Open account menu"
+            : "Open login menu"
         }
-        aria-label="Account"
         aria-expanded={open}
+        onClick={() =>
+          setOpen((current) => !current)
+        }
         className="
           flex
-          h-9
-          w-9
+          h-10
+          w-10
           items-center
           justify-center
           rounded-full
           border
-          border-[#451713]/15
+          border-[#451713]/20
           text-[#451713]
           transition-all
           duration-300
-          hover:border-[#451713]/40
-          hover:bg-[#451713]/5
+          hover:border-[#451713]
+          hover:bg-[#451713]
+          hover:text-[#f5ede4]
+          focus:outline-none
+          focus:ring-1
+          focus:ring-[#451713]
+          focus:ring-offset-2
+          focus:ring-offset-[#f5ede4]
         "
       >
-        <UserRound
-          size={18}
-          strokeWidth={1.7}
-        />
+        {user ? (
+          <span className="font-serif text-sm">
+            {initial}
+          </span>
+        ) : (
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            className="h-[18px] w-[18px]"
+            aria-hidden="true"
+          >
+            <circle
+              cx="12"
+              cy="8"
+              r="3.5"
+            />
+
+            <path
+              d="M5.5 20c.8-3.3 3.1-5 6.5-5s5.7 1.7 6.5 5"
+              strokeLinecap="round"
+            />
+          </svg>
+        )}
       </button>
+
+      {/* Dropdown */}
 
       {open && (
         <div
@@ -119,188 +158,312 @@ export default function ProfileMenu() {
             absolute
             right-0
             top-[calc(100%+14px)]
-            w-[250px]
-            overflow-hidden
-            rounded-2xl
+            z-[100]
+            w-[285px]
+            origin-top-right
             border
-            border-[#451713]/10
-            bg-[#faf6f1]
-            shadow-[0_20px_60px_rgba(69,23,19,0.18)]
+            border-[#451713]/15
+            bg-[#f8f0e7]
+            p-2
+            shadow-[0_18px_50px_rgba(69,23,19,0.14)]
           "
         >
-          {user ? (
+          {/* Small pointer */}
+
+          <span
+            className="
+              absolute
+              right-4
+              top-[-6px]
+              h-3
+              w-3
+              rotate-45
+              border-l
+              border-t
+              border-[#451713]/15
+              bg-[#f8f0e7]
+            "
+          />
+
+          {!loading && user ? (
             <>
-              <div className="border-b border-[#451713]/10 px-5 py-5">
-                <p className="text-[8px] font-semibold uppercase tracking-[0.2em] text-[#451713]/45">
-                  Signed In
+              {/* Logged in header */}
+
+              <div className="relative border-b border-[#451713]/10 px-4 py-4">
+                <p className="text-[8px] font-semibold uppercase tracking-[0.25em] text-[#451713]/45">
+                  Your account
                 </p>
 
-                <p className="mt-2 truncate text-sm font-medium text-[#151a2a]">
-                  {user.email ??
-                    "JENTARA Member"}
+                <p className="mt-2 truncate text-sm font-medium">
+                  {email}
                 </p>
               </div>
 
-              <div className="p-2">
-                <ProfileLink
+              {/* Account links */}
+
+              <div className="py-2">
+                <Link
                   href="/profile"
-                  label="My Profile"
-                  onClick={() =>
-                    setOpen(false)
-                  }
-                />
+                  onClick={() => setOpen(false)}
+                  className="
+                    group
+                    flex
+                    items-center
+                    justify-between
+                    px-4
+                    py-3.5
+                    text-[10px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.14em]
+                    transition-colors
+                    hover:bg-[#451713]
+                    hover:text-[#f5ede4]
+                  "
+                >
+                  <span>
+                    My Profile
+                  </span>
 
-                <ProfileLink
+                  <span className="transition-transform group-hover:translate-x-1">
+                    →
+                  </span>
+                </Link>
+
+                <Link
                   href="/orders"
-                  label="My Orders"
-                  onClick={() =>
-                    setOpen(false)
-                  }
-                />
+                  onClick={() => setOpen(false)}
+                  className="
+                    group
+                    flex
+                    items-center
+                    justify-between
+                    px-4
+                    py-3.5
+                    text-[10px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.14em]
+                    transition-colors
+                    hover:bg-[#451713]
+                    hover:text-[#f5ede4]
+                  "
+                >
+                  <span>
+                    My Orders
+                  </span>
 
-                <ProfileLink
-                  href="/wishlist"
-                  label="Wishlist"
-                  onClick={() =>
-                    setOpen(false)
-                  }
-                />
+                  <span className="transition-transform group-hover:translate-x-1">
+                    →
+                  </span>
+                </Link>
 
-                <ProfileLink
+                <Link
                   href="/profile/addresses"
-                  label="Addresses"
-                  onClick={() =>
-                    setOpen(false)
-                  }
-                />
+                  onClick={() => setOpen(false)}
+                  className="
+                    group
+                    flex
+                    items-center
+                    justify-between
+                    px-4
+                    py-3.5
+                    text-[10px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.14em]
+                    transition-colors
+                    hover:bg-[#451713]
+                    hover:text-[#f5ede4]
+                  "
+                >
+                  <span>
+                    Addresses
+                  </span>
 
+                  <span className="transition-transform group-hover:translate-x-1">
+                    →
+                  </span>
+                </Link>
+
+                <Link
+                  href="/wishlist"
+                  onClick={() => setOpen(false)}
+                  className="
+                    group
+                    flex
+                    items-center
+                    justify-between
+                    px-4
+                    py-3.5
+                    text-[10px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.14em]
+                    transition-colors
+                    hover:bg-[#451713]
+                    hover:text-[#f5ede4]
+                  "
+                >
+                  <span>
+                    Wishlist
+                  </span>
+
+                  <span className="transition-transform group-hover:translate-x-1">
+                    →
+                  </span>
+                </Link>
+
+                <Link
+                  href="/cart"
+                  onClick={() => setOpen(false)}
+                  className="
+                    group
+                    flex
+                    items-center
+                    justify-between
+                    px-4
+                    py-3.5
+                    text-[10px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.14em]
+                    transition-colors
+                    hover:bg-[#451713]
+                    hover:text-[#f5ede4]
+                  "
+                >
+                  <span>
+                    Shopping Cart
+                  </span>
+
+                  <span className="transition-transform group-hover:translate-x-1">
+                    →
+                  </span>
+                </Link>
+              </div>
+
+              {/* Logout */}
+
+              <div className="border-t border-[#451713]/10 p-2">
                 <button
                   type="button"
                   onClick={handleLogout}
                   className="
-                    mt-1
+                    flex
                     w-full
-                    rounded-xl
+                    items-center
+                    justify-between
                     px-4
-                    py-3
-                    text-left
-                    text-[9px]
+                    py-3.5
+                    text-[10px]
                     font-semibold
                     uppercase
                     tracking-[0.14em]
-                    text-red-700
-                    transition
-                    hover:bg-red-50
+                    text-[#451713]/55
+                    transition-colors
+                    hover:bg-[#451713]
+                    hover:text-[#f5ede4]
                   "
                 >
-                  Logout
+                  <span>
+                    Logout
+                  </span>
+
+                  <span>
+                    ↗
+                  </span>
                 </button>
               </div>
             </>
           ) : (
             <>
-              <div className="px-5 pb-3 pt-5">
-                <p className="font-serif text-2xl tracking-[-0.04em] text-[#451713]">
+              {/* Logged out header */}
+
+              <div className="relative px-4 py-5">
+                <p className="text-[8px] font-semibold uppercase tracking-[0.25em] text-[#451713]/45">
                   Welcome to JENTARA
                 </p>
 
-                <p className="mt-2 text-[9px] uppercase leading-5 tracking-[0.12em] text-[#151a2a]/45">
-                  Sign in to manage your
-                  orders and wishlist.
+                <h3 className="mt-2 font-serif text-2xl tracking-[-0.03em]">
+                  Your account.
+                </h3>
+
+                <p className="mt-2 text-[10px] leading-5 text-[#451713]/55">
+                  Sign in to view orders, save
+                  favourites and manage your account.
                 </p>
               </div>
 
-              <div className="space-y-2 p-3">
+              <div className="space-y-2 border-t border-[#451713]/10 p-2">
                 <Link
                   href="/login"
-                  onClick={() =>
-                    setOpen(false)
-                  }
+                  onClick={() => setOpen(false)}
                   className="
                     flex
-                    w-full
+                    min-h-12
                     items-center
-                    justify-center
-                    rounded-xl
+                    justify-between
                     bg-[#451713]
                     px-4
-                    py-3
                     text-[9px]
                     font-semibold
                     uppercase
-                    tracking-[0.16em]
-                    text-white
-                    transition
-                    hover:bg-[#32100d]
+                    tracking-[0.2em]
+                    text-[#f5ede4]
+                    transition-colors
+                    hover:bg-[#5d211b]
                   "
                 >
-                  Login
+                  <span>
+                    Login
+                  </span>
+
+                  <span className="text-base">
+                    →
+                  </span>
                 </Link>
 
                 <Link
                   href="/register"
-                  onClick={() =>
-                    setOpen(false)
-                  }
+                  onClick={() => setOpen(false)}
                   className="
                     flex
-                    w-full
+                    min-h-12
                     items-center
-                    justify-center
-                    rounded-xl
+                    justify-between
                     border
-                    border-[#451713]/15
+                    border-[#451713]
                     px-4
-                    py-3
                     text-[9px]
                     font-semibold
                     uppercase
-                    tracking-[0.16em]
+                    tracking-[0.2em]
                     text-[#451713]
-                    transition
-                    hover:bg-[#451713]/5
+                    transition-all
+                    hover:bg-[#451713]
+                    hover:text-[#f5ede4]
                   "
                 >
-                  Create Account
+                  <span>
+                    Create Account
+                  </span>
+
+                  <span className="text-base">
+                    →
+                  </span>
                 </Link>
+              </div>
+
+              <div className="border-t border-[#451713]/10 px-4 py-3">
+                <p className="text-center text-[8px] uppercase tracking-[0.15em] text-[#451713]/35">
+                  Shop JENTARA with your account
+                </p>
               </div>
             </>
           )}
         </div>
       )}
     </div>
-  );
-}
-
-function ProfileLink({
-  href,
-  label,
-  onClick,
-}: {
-  href: string;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <Link
-      href={href}
-      onClick={onClick}
-      className="
-        block
-        rounded-xl
-        px-4
-        py-3
-        text-[9px]
-        font-semibold
-        uppercase
-        tracking-[0.14em]
-        text-[#151a2a]/65
-        transition
-        hover:bg-[#451713]/5
-        hover:text-[#451713]
-      "
-    >
-      {label}
-    </Link>
   );
 }
