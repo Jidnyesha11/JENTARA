@@ -86,12 +86,17 @@ export async function setDefaultAddress(
   userId: string,
   addressId: string
 ) {
-  await supabase
-    .from("addresses")
-    .update({
-      is_default: false,
-    })
-    .eq("user_id", userId);
+  const { error: clearError } =
+    await supabase
+      .from("addresses")
+      .update({
+        is_default: false,
+      })
+      .eq("user_id", userId);
+
+  if (clearError) {
+    throw clearError;
+  }
 
   const { error } =
     await supabase

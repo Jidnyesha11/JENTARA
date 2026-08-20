@@ -507,7 +507,7 @@ export default function AboutPage() {
               </div>
 
               <Link
-                href="/products"
+                href="/shop"
                 className="
                   group
                   flex

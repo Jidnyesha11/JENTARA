@@ -172,12 +172,12 @@ async function handleSetDefault(
 }
 
   return (
-  <div className="min-h-screen bg-[#f8f5f2] py-12 px-6">
+  <div className="min-h-screen bg-[#f8f5f2] px-4 py-10 sm:px-6 sm:py-12">
 
     <div className="max-w-7xl mx-auto">
 
       <div className="mb-12">
-        <h1 className="text-5xl font-bold text-[#4a0f0f]">
+        <h1 className="text-4xl font-bold sm:text-5xl text-[#4a0f0f]">
           My Addresses
         </h1>
 
@@ -196,7 +196,7 @@ async function handleSetDefault(
               Add New Address
             </h2>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
 
               <input
                 placeholder="Full Name"
@@ -240,7 +240,7 @@ async function handleSetDefault(
               className="border p-4 rounded-xl w-full mt-4"
             />
 
-            <div className="grid grid-cols-3 gap-4 mt-4">
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
 
               <input
                 placeholder="City"

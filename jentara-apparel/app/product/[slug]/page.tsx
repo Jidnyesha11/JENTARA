@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { getProductBySlug } from "@/lib/supabase/products";
+import {
+  getProductById,
+  getProductBySlug,
+} from "@/lib/supabase/products";
 import { getProductImages } from "@/lib/supabase/product-images";
 
 import ProductGallery from "@/components/products/ProductGallery";
@@ -22,7 +25,9 @@ export default async function ProductPage({
 }: Props) {
   const { slug } = await params;
 
-  const product = await getProductBySlug(slug);
+  const product =
+    (await getProductBySlug(slug)) ??
+    (await getProductById(slug));
 
   if (!product) {
     notFound();
@@ -238,7 +243,7 @@ export default async function ProductPage({
                 </Link>
 
                 <Link
-                  href="/policies#returns"
+                  href="/policies#return-refund"
                   className="underline underline-offset-4 transition-colors hover:text-[#451713]"
                 >
                   Returns

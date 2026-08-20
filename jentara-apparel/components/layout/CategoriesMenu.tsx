@@ -10,7 +10,15 @@ import {
   type Category,
 } from "@/lib/supabase/categories";
 
-export default function CategoriesMenu() {
+interface CategoriesMenuProps {
+  mobile?: boolean;
+  onNavigate?: () => void;
+}
+
+export default function CategoriesMenu({
+  mobile = false,
+  onNavigate,
+}: CategoriesMenuProps) {
   const [categories, setCategories] =
     useState<Category[]>([]);
 
@@ -25,8 +33,7 @@ export default function CategoriesMenu() {
 
     async function loadCategories() {
       try {
-        const data =
-          await getCategories();
+        const data = await getCategories();
 
         if (mounted) {
           setCategories(data);
@@ -34,7 +41,7 @@ export default function CategoriesMenu() {
       } catch (error) {
         console.error(
           "NAVBAR CATEGORIES ERROR:",
-          error
+          error,
         );
       } finally {
         if (mounted) {
@@ -50,9 +57,214 @@ export default function CategoriesMenu() {
     };
   }, []);
 
+  function handleNavigate() {
+    setOpen(false);
+    onNavigate?.();
+  }
+
+  if (mobile) {
+    return (
+      <div className="md:hidden">
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls="mobile-categories"
+          onClick={() =>
+            setOpen((value) => !value)
+  }
+  className="
+    grid
+    min-h-12
+    w-full
+    grid-cols-3
+    items-center
+    border-b
+    border-[#451713]/10
+    px-2
+    text-[#451713]
+  "
+>
+  <span
+    className="
+      justify-self-start
+      text-[10px]
+      text-[#451713]/45
+    "
+  >
+    03
+  </span>
+
+  <span
+    className="
+      justify-self-center
+      text-[10px]
+      font-semibold
+      uppercase
+      tracking-[0.18em]
+    "
+  >
+    Categories
+  </span>
+
+  <span
+    className={`
+      justify-self-end
+      flex
+      h-6
+      w-6
+      items-center
+      justify-center
+      text-lg
+      font-normal
+      transition-transform
+      duration-300
+      ${
+        open
+          ? "rotate-45"
+          : ""
+      }
+    `}
+  >
+    +
+  </span>
+</button>
+
+        <div
+          id="mobile-categories"
+          className={`
+            overflow-hidden
+            transition-all
+            duration-300
+            ${
+              open
+                ? "max-h-[700px] opacity-100"
+                : "max-h-0 opacity-0"
+            }
+          `}
+        >
+          <div className="border-b border-[#451713]/10 py-2 pl-7 pr-2">
+            {loading ? (
+              <div className="space-y-2 py-3">
+                <div className="h-10 animate-pulse bg-[#451713]/5" />
+                <div className="h-10 animate-pulse bg-[#451713]/5" />
+                <div className="h-10 animate-pulse bg-[#451713]/5" />
+              </div>
+            ) : categories.length === 0 ? (
+              <p
+                className="
+                  py-4
+                  text-[9px]
+                  uppercase
+                  tracking-[0.15em]
+                  text-[#451713]/45
+                "
+              >
+                No categories available
+              </p>
+            ) : (
+              <div>
+                {categories.map(
+                  (category, index) => {
+                    const slug =
+                      category.slug ||
+                      category.id;
+
+                    return (
+                      <Link
+                        key={category.id}
+                        href={`/categories/${slug}`}
+                        onClick={handleNavigate}
+                        className="
+                          group
+                          flex
+                          min-h-11
+                          items-center
+                          justify-between
+                          border-b
+                          border-[#451713]/8
+                          px-3
+                          transition-colors
+                          hover:bg-[#451713]
+                          hover:text-[#faf7f3]
+                        "
+                      >
+                        <span className="flex items-center gap-3">
+                          <span
+                            className="
+                              text-[8px]
+                              text-[#451713]/30
+                              group-hover:text-[#faf7f3]/50
+                            "
+                          >
+                            {String(
+                              index + 1,
+                            ).padStart(2, "0")}
+                          </span>
+
+                          <span
+                            className="
+                              text-[10px]
+                              font-medium
+                              uppercase
+                              tracking-[0.08em]
+                            "
+                          >
+                            {category.name}
+                          </span>
+                        </span>
+
+                        <span
+                          className="
+                            text-[12px]
+                            text-[#451713]/30
+                            transition-transform
+                            group-hover:translate-x-1
+                            group-hover:text-[#faf7f3]
+                          "
+                        >
+                          →
+                        </span>
+                      </Link>
+                    );
+                  },
+                )}
+
+                <Link
+                  href="/categories"
+                  onClick={handleNavigate}
+                  className="
+                    flex
+                    min-h-12
+                    items-center
+                    justify-between
+                    px-3
+                    pt-2
+                    text-[9px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.16em]
+                    text-[#451713]
+                    transition-opacity
+                    hover:opacity-60
+                  "
+                >
+                  <span>
+                    View All Categories
+                  </span>
+
+                  <span>→</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
-      className="relative"
+      className="relative hidden md:block"
       onMouseEnter={() =>
         setOpen(true)
       }
@@ -67,16 +279,19 @@ export default function CategoriesMenu() {
         }
         aria-expanded={open}
         className="
+          relative
           flex
           items-center
           gap-2
-          text-[11px]
-          font-medium
+          whitespace-nowrap
+          text-[9px]
+          font-semibold
           uppercase
-          tracking-[0.04em]
-          text-[#151a2a]
-          transition
-          hover:opacity-60
+          tracking-[0.13em]
+          text-[#451713]/55
+          transition-all
+          duration-300
+          hover:text-[#451713]
         "
       >
         Categories
@@ -166,9 +381,7 @@ export default function CategoriesMenu() {
 
                   return (
                     <Link
-                      key={
-                        category.id
-                      }
+                      key={category.id}
                       href={`/categories/${slug}`}
                       onClick={() =>
                         setOpen(false)
@@ -194,11 +407,8 @@ export default function CategoriesMenu() {
                           "
                         >
                           {String(
-                            index + 1
-                          ).padStart(
-                            2,
-                            "0"
-                          )}
+                            index + 1,
+                          ).padStart(2, "0")}
                         </span>
 
                         <span
@@ -209,9 +419,7 @@ export default function CategoriesMenu() {
                             tracking-[0.08em]
                           "
                         >
-                          {
-                            category.name
-                          }
+                          {category.name}
                         </span>
                       </div>
 
@@ -228,7 +436,7 @@ export default function CategoriesMenu() {
                       </span>
                     </Link>
                   );
-                }
+                },
               )}
             </div>
           )}

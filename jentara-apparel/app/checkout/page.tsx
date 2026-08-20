@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +20,55 @@ interface Address {
   city: string;
   state: string;
   pincode: string;
+}
+
+type PaymentMethod = "card" | "upi" | "cod";
+
+function formatPrice(value: number): string {
+  return `₹${Number(value).toLocaleString("en-IN")}`;
+}
+
+function AddressBlock({
+  address,
+}: {
+  address: Address;
+}) {
+  return (
+    <div>
+      <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
+        <div>
+          <p className="text-[8px] font-semibold uppercase tracking-[0.25em] text-[#451713]/45">
+            Deliver to
+          </p>
+
+          <h3 className="mt-3 font-serif text-[28px] leading-none tracking-[-0.04em]">
+            {address.full_name}
+          </h3>
+        </div>
+
+        <span className="w-fit border border-[#451713]/20 px-3 py-1.5 text-[7px] font-semibold uppercase tracking-[0.18em] text-[#451713]/55">
+          Default
+        </span>
+      </div>
+
+      <div className="mt-6 grid gap-2 text-[12px] leading-6 text-[#451713]/65">
+        <p>{address.address_line_1}</p>
+
+        {address.address_line_2 && (
+          <p>{address.address_line_2}</p>
+        )}
+
+        <p>
+          {address.city}, {address.state} —{" "}
+          {address.pincode}
+        </p>
+
+        <p className="pt-2 text-[#451713]/80">
+          {address.phone}
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export default function CheckoutPage() {
@@ -43,53 +94,91 @@ export default function CheckoutPage() {
   const [placing, setPlacing] =
     useState(false);
 
+  const [loadingAddress, setLoadingAddress] =
+    useState(true);
+
+  const [paymentMethod, setPaymentMethod] =
+    useState<PaymentMethod>("upi");
+
+  const [hydrated, setHydrated] =
+    useState(false);
+
   useEffect(() => {
-    if (!loading && !user) {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (!user) {
       router.push("/login");
       return;
     }
 
-    if (!user) return;
+    const userId = user.id;
 
-    (async () => {
+    let cancelled = false;
+
+    async function loadAddress() {
       try {
+        setLoadingAddress(true);
+
         const data =
-          await getDefaultAddress(
-            user.id
-          );
+          await getDefaultAddress(userId);
 
-        setAddress(data);
-      } catch (error: unknown) {
-  const err = error instanceof Error ? error : new Error(String(error));
-  console.error(
-    "PLACE ORDER ERROR:",
-    err
-  );
+        if (!cancelled) {
+          setAddress(data);
+        }
+      } catch (error) {
+        console.error(
+          "CHECKOUT ADDRESS ERROR:",
+          error
+        );
+      } finally {
+        if (!cancelled) {
+          setLoadingAddress(false);
+        }
+      }
+    }
 
-  console.error(
-    "MESSAGE:",
-    err.message
-  );
+    loadAddress();
 
-  console.error(
-    "FULL:",
-    JSON.stringify(error)
-  );
-
-  alert(
-    err.message ??
-      JSON.stringify(error)
-  );
-}
-    })();
+    return () => {
+      cancelled = true;
+    };
   }, [user, loading, router]);
+
+  const itemCount = useMemo(
+    () =>
+      items.reduce(
+        (total, item) =>
+          total + item.quantity,
+        0
+      ),
+    [items]
+  );
+
+  const subtotal = useMemo(
+    () =>
+      items.reduce(
+        (total, item) =>
+          total +
+          item.price *
+            item.quantity,
+        0
+      ),
+    [items]
+  );
+
+  const shipping = 0;
+  const total = subtotal + shipping;
 
   async function placeOrder() {
     if (!user) return;
 
     if (!address) {
       alert(
-        "Please set a default address first"
+        "Please select a delivery address first."
       );
 
       router.push(
@@ -100,7 +189,12 @@ export default function CheckoutPage() {
     }
 
     if (items.length === 0) {
-      alert("Cart is empty");
+      alert(
+        "Your cart is empty."
+      );
+
+      router.push("/cart");
+
       return;
     }
 
@@ -108,45 +202,45 @@ export default function CheckoutPage() {
       setPlacing(true);
 
       for (const item of items) {
-  const {
-    data: product,
-    error,
-  } = await supabase
-    .from("products")
-    .select(
-      "name,size_inventory"
-    )
-    .eq("id", item.id)
-    .single();
+        const {
+          data: product,
+          error,
+        } = await supabase
+          .from("products")
+          .select(
+            "name,size_inventory"
+          )
+          .eq("id", item.id)
+          .single();
 
-  if (error) {
-    throw error;
-  }
+        if (error) {
+          throw error;
+        }
 
-  const inventory =
-    (product.size_inventory ??
-      {}) as Record<
-      string,
-      number
-    >;
+        const inventory =
+          (product?.size_inventory ??
+            {}) as Record<
+            string,
+            number
+          >;
 
-  const availableStock =
-    Number(
-      inventory[item.size] ??
-        0
-    );
+        const availableStock =
+          Number(
+            inventory[item.size] ??
+              0
+          );
 
-  if (
-    availableStock <
-    item.quantity
-  ) {
-    alert(
-      `${product.name} (${item.size}) is out of stock`
-    );
+        if (
+          availableStock <
+          item.quantity
+        ) {
+          alert(
+            `${product.name} (${item.size}) does not have enough stock.`
+          );
 
-    return;
-  }
-}
+          return;
+        }
+      }
 
       const {
         data: order,
@@ -180,336 +274,643 @@ export default function CheckoutPage() {
           pincode:
             address.pincode,
 
-          total_amount:
-            getTotal(),
+          total_amount: total,
 
           status: "pending",
         })
         .select()
         .single();
 
-      if (orderError)
+      if (orderError) {
         throw orderError;
+      }
 
       if (!order) {
         throw new Error(
-          "Order creation failed"
+          "Order creation failed."
         );
       }
 
-      const payload =
-  items.map((item) => ({
-    order_id: order.id,
+      const orderItems =
+        items.map((item) => ({
+          order_id: order.id,
 
-    product_id: item.id,
+          product_id: item.id,
 
-    product_name:
-      item.name,
+          product_name:
+            item.name,
 
-    size: item.size,
+          size: item.size,
 
-    price: item.price,
+          price: item.price,
 
-    quantity:
-      item.quantity,
-  }));
+          quantity:
+            item.quantity,
+        }));
 
       const {
-  error: itemError,
-} = await supabase
-  .from("order_items")
-  .insert(payload);
+        error: itemError,
+      } = await supabase
+        .from("order_items")
+        .insert(orderItems);
 
-if (itemError) {
-  throw itemError;
-}
+      if (itemError) {
+        throw itemError;
+      }
 
-for (const item of items) {
-  const {
-    data: product,
-    error: productError,
-  } = await supabase
-    .from("products")
-    .select(
-      "size_inventory"
-    )
-    .eq("id", item.id)
-    .single();
+      for (const item of items) {
+        const {
+          data: product,
+          error:
+            productError,
+        } = await supabase
+          .from("products")
+          .select(
+            "size_inventory"
+          )
+          .eq("id", item.id)
+          .single();
 
-  if (productError) {
-    throw productError;
-  }
+        if (productError) {
+          throw productError;
+        }
 
-  const inventory = {
-    ...((product.size_inventory ??
-      {}) as Record<
-      string,
-      number
-    >),
-  };
+        const inventory = {
+          ...((product?.size_inventory ??
+            {}) as Record<
+            string,
+            number
+          >),
+        };
 
-  inventory[item.size] =
-    Math.max(
-      0,
-      Number(
-        inventory[item.size] ??
-          0
-      ) - item.quantity
-    );
+        inventory[item.size] =
+          Math.max(
+            0,
+            Number(
+              inventory[
+                item.size
+              ] ?? 0
+            ) -
+              item.quantity
+          );
 
-  const {
-    error: updateError,
-  } = await supabase
-    .from("products")
-    .update({
-      size_inventory:
-        inventory,
-    })
-    .eq("id", item.id);
+        const {
+          error: updateError,
+        } = await supabase
+          .from("products")
+          .update({
+            size_inventory:
+              inventory,
+          })
+          .eq(
+            "id",
+            item.id
+          );
 
-  if (updateError) {
-    throw updateError;
-  }
-}
+        if (updateError) {
+          throw updateError;
+        }
+      }
+
       clearCart();
 
       router.push(
         `/order-success?id=${order.id}`
       );
     } catch (error) {
-      console.error(error);
-
-      alert(
-        "Failed to place order"
+      console.error(
+        "PLACE ORDER ERROR:",
+        error
       );
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to place your order.";
+
+      alert(message);
     } finally {
       setPlacing(false);
     }
   }
 
-  if (loading) {
+  if (
+    loading ||
+    !hydrated
+  ) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-xl">
-        Loading...
-      </div>
+      <main className="min-h-screen bg-[#f5ede4] text-[#451713]">
+        <div className="flex min-h-[70vh] items-center justify-center">
+          <div className="text-center">
+            <span className="mx-auto mb-5 block h-px w-10 bg-[#451713]" />
+
+            <p className="text-[8px] font-semibold uppercase tracking-[0.3em] text-[#451713]/50">
+              JENTARA / CHECKOUT
+            </p>
+          </div>
+        </div>
+      </main>
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
+
+  if (items.length === 0) {
+    return (
+      <main className="min-h-screen bg-[#f5ede4] text-[#451713]">
+        <div className="mx-auto flex min-h-[70vh] max-w-[1500px] items-center justify-center px-6">
+          <section className="max-w-lg text-center">
+            <p className="text-[8px] font-semibold uppercase tracking-[0.3em] text-[#451713]/45">
+              JENTARA / CHECKOUT
+            </p>
+
+            <h1 className="mt-6 font-serif text-[52px] leading-[0.9] tracking-[-0.06em] sm:text-[70px]">
+              Your cart is empty.
+            </h1>
+
+            <p className="mt-5 text-[12px] leading-6 text-[#451713]/55">
+              There is nothing to checkout yet.
+              Find your next piece in the collection.
+            </p>
+
+            <Link
+              href="/shop"
+              className="group mt-9 inline-flex min-h-12 items-center gap-8 bg-[#451713] px-7 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#f5ede4] transition-colors hover:bg-[#5c211b]"
+            >
+              Explore collection
+
+              <span className="text-base transition-transform group-hover:translate-x-1">
+                →
+              </span>
+            </Link>
+          </section>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#f8f5f2] py-12 px-6">
+    <main className="min-h-screen bg-[#f5ede4] text-[#451713]">
+      <div className="mx-auto max-w-[1500px] px-5 pb-24 pt-10 sm:px-8 sm:pt-14 lg:px-10 lg:pt-16">
+        {/* HEADER */}
+        <header className="border-b border-[#451713]/15 pb-10 sm:pb-12">
+          <div className="flex items-center gap-3">
+            <span className="h-px w-8 bg-[#451713]" />
 
-      <div className="max-w-7xl mx-auto">
-
-        {/* Header */}
-        <div className="mb-12">
-
-          <h1 className="text-5xl font-bold text-[#4a0f0f]">
-            Checkout
-          </h1>
-
-          <p className="text-gray-500 mt-2">
-            Complete your order securely.
-          </p>
-
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-10">
-
-          {/* Address Section */}
-          <div className="lg:col-span-2">
-
-            {!address ? (
-              <div className="bg-white rounded-3xl shadow-md p-8">
-
-                <h2 className="text-2xl font-bold mb-4">
-                  Delivery Address
-                </h2>
-
-                <p className="text-gray-500 mb-6">
-                  No default address found.
-                </p>
-
-                <button
-                  onClick={() =>
-                    router.push(
-                      "/profile/addresses"
-                    )
-                  }
-                  className="
-                    bg-[#4a0f0f]
-                    text-white
-                    px-8
-                    py-4
-                    rounded-xl
-                    hover:bg-[#5d1818]
-                    transition
-                  "
-                >
-                  Add Address
-                </button>
-
-              </div>
-            ) : (
-              <div className="bg-white rounded-3xl shadow-md p-8">
-
-                <div className="flex items-center justify-between mb-6">
-
-                  <h2 className="text-2xl font-bold">
-                    Delivery Address
-                  </h2>
-
-                  <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full">
-                    Default Address
-                  </span>
-
-                </div>
-
-                <h3 className="text-xl font-semibold">
-                  {address.full_name}
-                </h3>
-
-                <p className="text-gray-600 mt-2">
-                  {address.phone}
-                </p>
-
-                <div className="mt-4 text-gray-600 space-y-1">
-
-                  <p>
-                    {address.address_line_1}
-                  </p>
-
-                  <p>
-                    {address.address_line_2}
-                  </p>
-
-                  <p>
-                    {address.city},{" "}
-                    {address.state}
-                  </p>
-
-                  <p>
-                    {address.pincode}
-                  </p>
-
-                </div>
-
-                <button
-                  onClick={() =>
-                    router.push(
-                      "/profile/addresses"
-                    )
-                  }
-                  className="
-                    mt-6
-                    text-[#4a0f0f]
-                    font-semibold
-                    hover:underline
-                  "
-                >
-                  Change Address
-                </button>
-
-              </div>
-            )}
-
+            <p className="text-[8px] font-semibold uppercase tracking-[0.32em] text-[#451713]/55">
+              JENTARA / CHECKOUT
+            </p>
           </div>
 
-          {/* Order Summary */}
-          <div>
+          <div className="mt-7 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div>
+              <h1 className="font-serif text-[55px] leading-[0.88] tracking-[-0.065em] sm:text-[76px] lg:text-[88px]">
+                Complete your order.
+              </h1>
 
-            <div className="bg-white rounded-3xl shadow-md p-8 sticky top-10">
+              <p className="mt-5 max-w-lg text-[12px] leading-6 text-[#451713]/55 sm:text-[13px]">
+                One final step before your JENTARA
+                pieces make their way to you.
+              </p>
+            </div>
 
-              <h2 className="text-3xl font-bold mb-8">
-                Order Summary
-              </h2>
+            <Link
+              href="/cart"
+              className="w-fit text-[8px] font-semibold uppercase tracking-[0.2em] text-[#451713]/55 underline underline-offset-4 transition-colors hover:text-[#451713]"
+            >
+              ← Back to cart
+            </Link>
+          </div>
+        </header>
 
-              <div className="space-y-4">
+        <div className="grid gap-12 pt-10 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-16 lg:pt-12">
+          {/* LEFT */}
+          <div className="min-w-0">
+            {/* 01 ADDRESS */}
+            <section className="border-b border-[#451713]/15 pb-10">
+              <div className="mb-7 flex items-center justify-between gap-5">
+                <div className="flex items-center gap-3">
+                  <span className="h-px w-6 bg-[#451713]" />
 
-                <div className="flex justify-between">
-                  <span>Total Items</span>
-                  <span>
-                    {
-  items.reduce(
-    (
-      total,
-      item
-    ) =>
-      total +
-      item.quantity,
-    0
-  )
-}
-                  </span>
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.25em]">
+                    Delivery address
+                  </p>
                 </div>
 
-                <div className="flex justify-between">
-                  <span>Shipping</span>
-                  <span className="text-green-600">
+                <span className="font-serif text-xl text-[#451713]/30">
+                  01
+                </span>
+              </div>
+
+              {loadingAddress ? (
+                <div className="border border-[#451713]/10 bg-[#efe4d9]/40 p-7">
+                  <div className="h-4 w-32 animate-pulse bg-[#451713]/10" />
+                  <div className="mt-5 h-3 w-64 animate-pulse bg-[#451713]/10" />
+                  <div className="mt-2 h-3 w-48 animate-pulse bg-[#451713]/10" />
+                </div>
+              ) : address ? (
+                <div className="border border-[#451713]/15 bg-[#efe4d9]/45 p-6 sm:p-8">
+                  <AddressBlock
+                    address={address}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      router.push(
+                        "/profile/addresses"
+                      )
+                    }
+                    className="mt-7 border-b border-[#451713] pb-1 text-[8px] font-semibold uppercase tracking-[0.2em]"
+                  >
+                    Change address
+                  </button>
+                </div>
+              ) : (
+                <div className="border border-[#451713]/15 p-6 sm:p-8">
+                  <p className="font-serif text-[28px] tracking-[-0.04em]">
+                    Choose where we should deliver.
+                  </p>
+
+                  <p className="mt-3 max-w-md text-[11px] leading-6 text-[#451713]/55">
+                    Add an address to continue with
+                    checkout.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      router.push(
+                        "/profile/addresses"
+                      )
+                    }
+                    className="group mt-6 inline-flex items-center gap-6 bg-[#451713] px-6 py-4 text-[8px] font-semibold uppercase tracking-[0.2em] text-[#f5ede4]"
+                  >
+                    Add address
+
+                    <span className="text-base transition-transform group-hover:translate-x-1">
+                      →
+                    </span>
+                  </button>
+                </div>
+              )}
+            </section>
+
+            {/* 02 DELIVERY */}
+            <section className="border-b border-[#451713]/15 py-10">
+              <div className="mb-7 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="h-px w-6 bg-[#451713]" />
+
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.25em]">
+                    Delivery
+                  </p>
+                </div>
+
+                <span className="font-serif text-xl text-[#451713]/30">
+                  02
+                </span>
+              </div>
+
+              <div className="border border-[#451713]/20 bg-[#efe4d9]/35 p-5 sm:p-6">
+                <div className="flex items-start justify-between gap-5">
+                  <div>
+                    <p className="text-[11px] font-semibold">
+                      Standard delivery
+                    </p>
+
+                    <p className="mt-2 text-[10px] leading-5 text-[#451713]/55">
+                      Delivery within 5–7 working days.
+                    </p>
+                  </div>
+
+                  <span className="text-[8px] font-semibold uppercase tracking-[0.15em]">
                     Free
                   </span>
                 </div>
+              </div>
+            </section>
 
-                <div className="flex justify-between">
-                  <span>Tax</span>
-                  <span>Included</span>
+            {/* 03 PAYMENT */}
+            <section className="border-b border-[#451713]/15 py-10">
+              <div className="mb-7 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="h-px w-6 bg-[#451713]" />
+
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.25em]">
+                    Payment
+                  </p>
                 </div>
 
+                <span className="font-serif text-xl text-[#451713]/30">
+                  03
+                </span>
               </div>
 
-              <div className="border-t mt-6 pt-6">
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  {
+                    id: "upi" as const,
+                    title: "UPI",
+                    description:
+                      "Fast & simple",
+                  },
+                  {
+                    id: "card" as const,
+                    title: "Card",
+                    description:
+                      "Credit / debit",
+                  },
+                  {
+                    id: "cod" as const,
+                    title: "COD",
+                    description:
+                      "If available",
+                  },
+                ].map((method) => {
+                  const selected =
+                    paymentMethod ===
+                    method.id;
 
-                <div className="flex justify-between text-2xl font-bold">
+                  return (
+                    <button
+                      key={method.id}
+                      type="button"
+                      onClick={() =>
+                        setPaymentMethod(
+                          method.id
+                        )
+                      }
+                      className={`min-h-[92px] border p-4 text-left transition-colors ${
+                        selected
+                          ? "border-[#451713] bg-[#451713] text-[#f5ede4]"
+                          : "border-[#451713]/15 bg-transparent hover:border-[#451713]/40"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.16em]">
+                          {method.title}
+                        </span>
 
-                  <span>Total</span>
+                        <span
+                          className={`flex h-4 w-4 items-center justify-center rounded-full border ${
+                            selected
+                              ? "border-[#f5ede4]"
+                              : "border-[#451713]/35"
+                          }`}
+                        >
+                          {selected && (
+                            <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                          )}
+                        </span>
+                      </div>
 
-                  <span className="text-[#4a0f0f]">
-                    ₹{getTotal()}
-                  </span>
+                      <p
+                        className={`mt-3 text-[9px] ${
+                          selected
+                            ? "text-[#f5ede4]/60"
+                            : "text-[#451713]/45"
+                        }`}
+                      >
+                        {method.description}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
 
+              <p className="mt-5 text-[9px] leading-5 text-[#451713]/45">
+                Payment options shown here are based on
+                your available checkout flow. You will
+                complete payment through the next step
+                when applicable.
+              </p>
+            </section>
+
+            {/* 04 ITEMS */}
+            <section className="pt-10">
+              <div className="mb-7 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="h-px w-6 bg-[#451713]" />
+
+                  <p className="text-[8px] font-semibold uppercase tracking-[0.25em]">
+                    Your pieces
+                  </p>
                 </div>
 
+                <span className="font-serif text-xl text-[#451713]/30">
+                  04
+                </span>
+              </div>
+
+              <div className="divide-y divide-[#451713]/15 border-y border-[#451713]/15">
+                {items.map((item) => (
+                  <div
+                    key={`${item.id}-${item.size}`}
+                    className="flex gap-5 py-5 sm:gap-6"
+                  >
+                    <Link
+                      href={`/product/${encodeURIComponent(
+                        item.id
+                      )}`}
+                      className="relative h-28 w-24 shrink-0 overflow-hidden bg-[#e8ded4] sm:h-32 sm:w-28"
+                    >
+                      {item.image_url ? (
+                        <Image
+                          src={item.image_url}
+                          alt={item.name}
+                          fill
+                          sizes="112px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-[7px] uppercase tracking-[0.12em] text-[#451713]/35">
+                          No image
+                        </div>
+                      )}
+                    </Link>
+
+                    <div className="flex min-w-0 flex-1 flex-col justify-between gap-4">
+                      <div className="flex items-start justify-between gap-5">
+                        <div className="min-w-0">
+                          <Link
+                            href={`/product/${encodeURIComponent(
+                              item.id
+                            )}`}
+                            className="font-serif text-[20px] leading-tight tracking-[-0.035em] hover:opacity-60"
+                          >
+                            {item.name}
+                          </Link>
+
+                          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[8px] font-semibold uppercase tracking-[0.15em] text-[#451713]/45">
+                            <span>
+                              Size {item.size}
+                            </span>
+
+                            <span>
+                              Qty {item.quantity}
+                            </span>
+                          </div>
+                        </div>
+
+                        <p className="shrink-0 text-[11px] font-medium">
+                          {formatPrice(
+                            item.price *
+                              item.quantity
+                          )}
+                        </p>
+                      </div>
+
+                      <p className="text-[9px] uppercase tracking-[0.15em] text-[#451713]/40">
+                        {formatPrice(
+                          item.price
+                        )}{" "}
+                        each
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          {/* RIGHT SUMMARY */}
+          <aside className="lg:sticky lg:top-8 lg:self-start">
+            <div className="border border-[#451713]/15 bg-[#efe4d9]/45 p-6 sm:p-8 lg:p-9">
+              <div className="flex items-center justify-between border-b border-[#451713]/15 pb-5">
+                <p className="text-[9px] font-semibold uppercase tracking-[0.25em]">
+                  Order summary
+                </p>
+
+                <span className="text-[8px] uppercase tracking-[0.15em] text-[#451713]/40">
+                  {itemCount}{" "}
+                  {itemCount === 1
+                    ? "item"
+                    : "items"}
+                </span>
+              </div>
+
+              <div className="space-y-5 py-7">
+                <div className="flex justify-between gap-5 text-[11px]">
+                  <span className="text-[#451713]/60">
+                    Subtotal
+                  </span>
+
+                  <span>
+                    {formatPrice(
+                      subtotal
+                    )}
+                  </span>
+                </div>
+
+                <div className="flex justify-between gap-5 text-[11px]">
+                  <span className="text-[#451713]/60">
+                    Delivery
+                  </span>
+
+                  <span className="text-[8px] font-semibold uppercase tracking-[0.15em]">
+                    Complimentary
+                  </span>
+                </div>
+
+                <div className="flex justify-between gap-5 text-[11px]">
+                  <span className="text-[#451713]/60">
+                    Taxes
+                  </span>
+
+                  <span className="text-[#451713]/55">
+                    Included
+                  </span>
+                </div>
+              </div>
+
+              <div className="border-t border-[#451713]/20 pt-6">
+                <div className="flex items-end justify-between gap-5">
+                  <div>
+                    <p className="text-[8px] font-semibold uppercase tracking-[0.2em] text-[#451713]/45">
+                      Total
+                    </p>
+
+                    <p className="mt-2 font-serif text-[37px] leading-none tracking-[-0.05em]">
+                      {formatPrice(total)}
+                    </p>
+                  </div>
+
+                  <span className="pb-1 text-[8px] uppercase tracking-[0.15em] text-[#451713]/40">
+                    INR
+                  </span>
+                </div>
               </div>
 
               <button
+                type="button"
                 onClick={placeOrder}
-                disabled={placing}
-                className="
-                  w-full
-                  mt-8
-                  bg-[#4a0f0f]
-                  text-white
-                  py-4
-                  rounded-xl
-                  text-lg
-                  font-semibold
-                  hover:bg-[#5d1818]
-                  transition
-                  disabled:opacity-50
-                "
+                disabled={
+                  placing ||
+                  loadingAddress ||
+                  !address
+                }
+                className="group mt-8 flex min-h-14 w-full items-center justify-between bg-[#451713] px-6 text-left text-[9px] font-semibold uppercase tracking-[0.2em] text-[#f5ede4] transition-colors hover:bg-[#5c211b] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {placing
-                  ? "Placing Order..."
-                  : "Place Order"}
+                <span>
+                  {placing
+                    ? "Placing order..."
+                    : "Pay & place order"}
+                </span>
+
+                <span className="text-base transition-transform duration-300 group-hover:translate-x-1">
+                  →
+                </span>
               </button>
 
-              <div className="mt-6 text-sm text-gray-500 space-y-2">
+              <div className="mt-7 space-y-3 border-t border-[#451713]/10 pt-5">
+                <div className="flex gap-3">
+                  <span className="text-[9px]">
+                    01
+                  </span>
 
-                <p>🔒 Secure Checkout</p>
-                <p>🚚 Free Shipping</p>
-                <p>↩️ Easy Returns</p>
+                  <p className="text-[9px] leading-5 text-[#451713]/50">
+                    Your order is protected by
+                    JENTARA&apos;s secure checkout.
+                  </p>
+                </div>
 
+                <div className="flex gap-3">
+                  <span className="text-[9px]">
+                    02
+                  </span>
+
+                  <p className="text-[9px] leading-5 text-[#451713]/50">
+                    Easy returns according to our
+                    return policy.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <span className="text-[9px]">
+                    03
+                  </span>
+
+                  <p className="text-[9px] leading-5 text-[#451713]/50">
+                    Standard delivery within the
+                    estimated delivery window.
+                  </p>
+                </div>
               </div>
-
             </div>
 
-          </div>
-
+            <Link
+              href="/cart"
+              className="mt-6 flex items-center justify-between border-b border-[#451713]/20 pb-4 text-[8px] font-semibold uppercase tracking-[0.2em] text-[#451713]/55 hover:text-[#451713]"
+            >
+              <span>Review your selection</span>
+              <span>←</span>
+            </Link>
+          </aside>
         </div>
-
       </div>
-
-    </div>
+    </main>
   );
 }

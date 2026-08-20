@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
+import CategoriesMenu from "@/components/layout/CategoriesMenu";
 import ProfileMenu from "@/components/layout/ProfileMenu";
 
 const navigation = [
@@ -16,10 +17,6 @@ const navigation = [
   {
     label: "Shop",
     href: "/shop",
-  },
-  {
-    label: "Categories",
-    href: "/categories",
   },
   {
     label: "About Us",
@@ -33,6 +30,7 @@ const navigation = [
 
 export default function Navbar() {
   const pathname = usePathname();
+
   const [mobileMenuOpen, setMobileMenuOpen] =
     useState(false);
 
@@ -47,6 +45,7 @@ export default function Navbar() {
   useEffect(() => {
     if (!mobileMenuOpen) {
       document.body.style.overflow = "";
+
       return;
     }
 
@@ -80,58 +79,167 @@ export default function Navbar() {
             md:h-[88px]
           "
         >
-          {/* Desktop Navigation */}
+          {/* Desktop navigation */}
 
           <nav className="hidden md:block">
             <div className="flex items-center gap-7 lg:gap-9">
-              {navigation.map((item) => {
-                const active = isActive(item.href);
+              <Link
+                href="/"
+                className={`
+                  relative
+                  whitespace-nowrap
+                  text-[9px]
+                  font-semibold
+                  uppercase
+                  tracking-[0.13em]
+                  transition-all
+                  duration-300
+                  ${
+                    isActive("/")
+                      ? "text-[#451713]"
+                      : "text-[#451713]/55 hover:text-[#451713]"
+                  }
+                `}
+              >
+                Home
 
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`
-                      relative
-                      whitespace-nowrap
-                      text-[9px]
-                      font-semibold
-                      uppercase
-                      tracking-[0.13em]
-                      transition-all
-                      duration-300
-                      ${
-                        active
-                          ? "text-[#451713]"
-                          : "text-[#451713]/55 hover:text-[#451713]"
-                      }
-                    `}
-                  >
-                    {item.label}
+                <span
+                  className={`
+                    absolute
+                    -bottom-2
+                    left-0
+                    h-px
+                    bg-[#451713]
+                    transition-all
+                    duration-300
+                    ${
+                      isActive("/")
+                        ? "w-full"
+                        : "w-0"
+                    }
+                  `}
+                />
+              </Link>
 
-                    <span
-                      className={`
-                        absolute
-                        -bottom-2
-                        left-0
-                        h-px
-                        bg-[#451713]
-                        transition-all
-                        duration-300
-                        ${
-                          active
-                            ? "w-full"
-                            : "w-0"
-                        }
-                      `}
-                    />
-                  </Link>
-                );
-              })}
+              <Link
+                href="/shop"
+                className={`
+                  relative
+                  whitespace-nowrap
+                  text-[9px]
+                  font-semibold
+                  uppercase
+                  tracking-[0.13em]
+                  transition-all
+                  duration-300
+                  ${
+                    isActive("/shop")
+                      ? "text-[#451713]"
+                      : "text-[#451713]/55 hover:text-[#451713]"
+                  }
+                `}
+              >
+                Shop
+
+                <span
+                  className={`
+                    absolute
+                    -bottom-2
+                    left-0
+                    h-px
+                    bg-[#451713]
+                    transition-all
+                    duration-300
+                    ${
+                      isActive("/shop")
+                        ? "w-full"
+                        : "w-0"
+                    }
+                  `}
+                />
+              </Link>
+
+              <CategoriesMenu />
+
+              <Link
+                href="/about"
+                className={`
+                  relative
+                  whitespace-nowrap
+                  text-[9px]
+                  font-semibold
+                  uppercase
+                  tracking-[0.13em]
+                  transition-all
+                  duration-300
+                  ${
+                    isActive("/about")
+                      ? "text-[#451713]"
+                      : "text-[#451713]/55 hover:text-[#451713]"
+                  }
+                `}
+              >
+                About Us
+
+                <span
+                  className={`
+                    absolute
+                    -bottom-2
+                    left-0
+                    h-px
+                    bg-[#451713]
+                    transition-all
+                    duration-300
+                    ${
+                      isActive("/about")
+                        ? "w-full"
+                        : "w-0"
+                    }
+                  `}
+                />
+              </Link>
+
+              <Link
+                href="/contact"
+                className={`
+                  relative
+                  whitespace-nowrap
+                  text-[9px]
+                  font-semibold
+                  uppercase
+                  tracking-[0.13em]
+                  transition-all
+                  duration-300
+                  ${
+                    isActive("/contact")
+                      ? "text-[#451713]"
+                      : "text-[#451713]/55 hover:text-[#451713]"
+                  }
+                `}
+              >
+                Contact Us
+
+                <span
+                  className={`
+                    absolute
+                    -bottom-2
+                    left-0
+                    h-px
+                    bg-[#451713]
+                    transition-all
+                    duration-300
+                    ${
+                      isActive("/contact")
+                        ? "w-full"
+                        : "w-0"
+                    }
+                  `}
+                />
+              </Link>
             </div>
           </nav>
 
-          {/* Mobile Left */}
+          {/* Mobile menu button */}
 
           <button
             type="button"
@@ -232,7 +340,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Right Actions */}
+          {/* Right actions */}
 
           <div
             className="
@@ -245,8 +353,6 @@ export default function Navbar() {
               md:gap-5
             "
           >
-            {/* Search */}
-
             <Link
               href="/search"
               aria-label="Search products"
@@ -282,8 +388,6 @@ export default function Navbar() {
               </svg>
             </Link>
 
-            {/* Desktop Wishlist */}
-
             <Link
               href="/wishlist"
               aria-label="Wishlist"
@@ -314,8 +418,6 @@ export default function Navbar() {
                 />
               </svg>
             </Link>
-
-            {/* Desktop Cart */}
 
             <Link
               href="/cart"
@@ -352,13 +454,11 @@ export default function Navbar() {
               </svg>
             </Link>
 
-            {/* Profile */}
-
             <ProfileMenu />
           </div>
         </div>
 
-        {/* Mobile Navigation Drawer */}
+        {/* Mobile navigation */}
 
         <div
           className={`
@@ -368,70 +468,134 @@ export default function Navbar() {
             md:hidden
             ${
               mobileMenuOpen
-                ? "max-h-[520px] border-t border-[#451713]/10"
+                ? "max-h-[900px] border-t border-[#451713]/10"
                 : "max-h-0"
             }
           `}
         >
           <nav className="py-4">
-            {navigation.map((item, index) => {
-              const active = isActive(item.href);
+            <Link
+              href="/"
+              onClick={() =>
+                setMobileMenuOpen(false)
+              }
+              className="
+                flex
+                min-h-12
+                items-center
+                justify-between
+                border-b
+                border-[#451713]/10
+                px-2
+                text-[10px]
+                font-semibold
+                uppercase
+                tracking-[0.18em]
+                text-[#451713]
+              "
+            >
+              <span className="text-[#451713]/45">
+                01
+              </span>
 
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() =>
-                    setMobileMenuOpen(false)
-                  }
-                  className={`
-                    flex
-                    min-h-12
-                    items-center
-                    justify-between
-                    border-b
-                    border-[#451713]/10
-                    px-2
-                    text-[10px]
-                    font-semibold
-                    uppercase
-                    tracking-[0.18em]
-                    transition-colors
-                    ${
-                      active
-                        ? "text-[#451713]"
-                        : "text-[#451713]/60 hover:text-[#451713]"
-                    }
-                  `}
-                >
-                  <span>
-                    {String(index + 1).padStart(
-                      2,
-                      "0",
-                    )}
-                  </span>
+              <span>Home</span>
 
-                  <span>
-                    {item.label}
-                  </span>
+              <span>→</span>
+            </Link>
 
-                  <span
-                    className={`
-                      text-base
-                      ${
-                        active
-                          ? "opacity-100"
-                          : "opacity-30"
-                      }
-                    `}
-                  >
-                    →
-                  </span>
-                </Link>
-              );
-            })}
+            <Link
+              href="/shop"
+              onClick={() =>
+                setMobileMenuOpen(false)
+              }
+              className="
+                flex
+                min-h-12
+                items-center
+                justify-between
+                border-b
+                border-[#451713]/10
+                px-2
+                text-[10px]
+                font-semibold
+                uppercase
+                tracking-[0.18em]
+                text-[#451713]
+              "
+            >
+              <span className="text-[#451713]/45">
+                02
+              </span>
 
-            {/* Mobile shopping links */}
+              <span>Shop</span>
+
+              <span>→</span>
+            </Link>
+
+            <CategoriesMenu
+              mobile
+              onNavigate={() =>
+                setMobileMenuOpen(false)
+              }
+            />
+
+            <Link
+              href="/about"
+              onClick={() =>
+                setMobileMenuOpen(false)
+              }
+              className="
+                flex
+                min-h-12
+                items-center
+                justify-between
+                border-b
+                border-[#451713]/10
+                px-2
+                text-[10px]
+                font-semibold
+                uppercase
+                tracking-[0.18em]
+                text-[#451713]
+              "
+            >
+              <span className="text-[#451713]/45">
+                04
+              </span>
+
+              <span>About Us</span>
+
+              <span>→</span>
+            </Link>
+
+            <Link
+              href="/contact"
+              onClick={() =>
+                setMobileMenuOpen(false)
+              }
+              className="
+                flex
+                min-h-12
+                items-center
+                justify-between
+                border-b
+                border-[#451713]/10
+                px-2
+                text-[10px]
+                font-semibold
+                uppercase
+                tracking-[0.18em]
+                text-[#451713]
+              "
+            >
+              <span className="text-[#451713]/45">
+                05
+              </span>
+
+              <span>Contact Us</span>
+
+              <span>→</span>
+            </Link>
 
             <div className="grid grid-cols-2 gap-2 pt-4">
               <Link

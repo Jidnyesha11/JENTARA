@@ -7,30 +7,39 @@ export async function getProducts() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error(error);
+    console.error("GET PRODUCTS ERROR:", error);
+    throw error;
+  }
+
+  return data ?? [];
+}
+
+export async function getProductBySlug(slug: string) {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) {
+    console.error("GET PRODUCT BY SLUG ERROR:", error);
     throw error;
   }
 
   return data;
 }
 
-export async function getProductBySlug(
-  slug: string
-) {
-  console.log("Searching for slug:", slug);
-
+export async function getProductById(id: string) {
   const { data, error } = await supabase
     .from("products")
-    .select("*");
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
 
-  console.log("ALL PRODUCTS:", data);
-  console.log("ERROR:", error);
+  if (error) {
+    console.error("GET PRODUCT BY ID ERROR:", error);
+    throw error;
+  }
 
-  const product = data?.find(
-    (p) => p.slug === slug
-  );
-
-  console.log("MATCHED PRODUCT:", product);
-
-  return product ?? null;
+  return data;
 }
