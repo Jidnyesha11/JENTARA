@@ -9,6 +9,7 @@ import { getProductImages } from "@/lib/supabase/product-images";
 
 import ProductGallery from "@/components/products/ProductGallery";
 import ProductActions from "@/components/products/ProductActions";
+import ProductReviews from "@/components/products/ProductReviews";
 
 interface Props {
   params: Promise<{
@@ -69,8 +70,6 @@ export default async function ProductPage({
       ===================================================== */}
 
       <section className="mx-auto max-w-[1600px] px-5 pb-16 pt-5 sm:px-8 sm:pb-20 lg:px-10 lg:pt-7">
-        {/* Breadcrumb */}
-
         <div className="mb-6 flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#451713]/45">
           <Link
             href="/shop"
@@ -105,8 +104,6 @@ export default async function ProductPage({
 
           <aside className="lg:sticky lg:top-[105px]">
             <div className="border-t border-[#451713]/20 pt-5">
-              {/* Collection */}
-
               <div className="flex items-center gap-3">
                 <span className="h-px w-8 bg-[#451713]" />
 
@@ -115,13 +112,9 @@ export default async function ProductPage({
                 </p>
               </div>
 
-              {/* Product title */}
-
               <h1 className="mt-6 max-w-[650px] font-serif text-[48px] leading-[0.92] tracking-[-0.055em] sm:text-[58px] lg:text-[62px] xl:text-[72px]">
                 {product.name}
               </h1>
-
-              {/* Price */}
 
               <div className="mt-7 flex flex-wrap items-center gap-3">
                 <span className="text-[24px] font-semibold tracking-[-0.025em] sm:text-[27px]">
@@ -133,9 +126,7 @@ export default async function ProductPage({
                     <span className="text-[14px] text-[#451713]/35 line-through">
                       ₹
                       {formatPrice(
-                        Number(
-                          product.original_price
-                        )
+                        Number(product.original_price)
                       )}
                     </span>
 
@@ -158,24 +149,18 @@ export default async function ProductPage({
                 </span>
               </div>
 
-              {/* Description */}
-
               {product.description && (
                 <p className="mt-7 max-w-[620px] text-[12px] leading-6 text-[#451713]/65 sm:text-[13px] sm:leading-7">
                   {product.description}
                 </p>
               )}
 
-              {/* Purchase actions */}
-
               {totalStock > 0 ? (
                 <ProductActions
                   product={{
                     id: product.id,
                     name: product.name,
-                    price: Number(
-                      product.price
-                    ),
+                    price: Number(product.price),
                     image_url:
                       product.image_url ?? "",
                   }}
@@ -195,8 +180,6 @@ export default async function ProductPage({
                   </Link>
                 </div>
               )}
-
-              {/* Reassurance */}
 
               <div className="mt-7 border-y border-[#451713]/15">
                 <div className="grid grid-cols-3 divide-x divide-[#451713]/15">
@@ -232,8 +215,6 @@ export default async function ProductPage({
                 </div>
               </div>
 
-              {/* Policies */}
-
               <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[8px] font-semibold uppercase tracking-[0.15em] text-[#451713]/45">
                 <Link
                   href="/policies#shipping"
@@ -268,8 +249,6 @@ export default async function ProductPage({
       <section className="border-y border-[#451713]/15">
         <div className="mx-auto max-w-[1600px]">
           <div className="grid lg:grid-cols-2">
-            {/* Details */}
-
             <div className="px-5 py-14 sm:px-8 sm:py-16 lg:border-r lg:border-[#451713]/15 lg:px-10 lg:py-20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -326,8 +305,6 @@ export default async function ProductPage({
                 </div>
               </div>
             </div>
-
-            {/* Fit */}
 
             <div className="px-5 py-14 sm:px-8 sm:py-16 lg:px-10 lg:py-20">
               <div className="flex items-center justify-between">
@@ -387,7 +364,12 @@ export default async function ProductPage({
           </div>
         </div>
       </section>
+
+      {/* =====================================================
+          CUSTOMER REVIEWS
+      ===================================================== */}
+
+      <ProductReviews productId={product.id} />
     </main>
   );
 }
-
