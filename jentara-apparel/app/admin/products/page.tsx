@@ -13,7 +13,6 @@ import {
 
 import Link from "next/link";
 import Image from "next/image";
-import AdminNavbar from "@/components/admin/AdminNavbar";
 
 import {
   getProductById,
@@ -247,8 +246,6 @@ async function handleExport() {
       <h1 className="text-5xl font-bold mb-10">
         Manage Products
       </h1>
-
-      <AdminNavbar />
        
        <input
   type="file"

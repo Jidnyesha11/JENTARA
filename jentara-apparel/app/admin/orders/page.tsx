@@ -10,8 +10,6 @@ import {
   updateOrderStatus,
 } from "@/lib/supabase/admin-orders";
 
-import AdminNavbar from "@/components/admin/AdminNavbar";
-
 interface Order {
   id: string;
   customer_name: string;
@@ -46,8 +44,6 @@ export default function AdminOrdersPage() {
       <h1 className="text-5xl font-bold mb-10">
         Manage Orders
       </h1>
-
-      <AdminNavbar />
 
       <div className="space-y-6">
         {orders.map((order) => (

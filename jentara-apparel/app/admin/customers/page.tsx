@@ -9,8 +9,6 @@ import {
   getAllCustomers,
 } from "@/lib/supabase/admin-customers";
 
-import AdminNavbar from "@/components/admin/AdminNavbar";
-
 interface Customer {
   id: string;
   email: string;
@@ -47,8 +45,6 @@ export default function CustomersPage() {
       <h1 className="text-5xl font-bold mb-10">
         Customers
       </h1>
-
-      <AdminNavbar />
 
       <div className="space-y-4">
         {customers.length === 0 ? (

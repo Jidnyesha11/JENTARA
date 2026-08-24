@@ -10,7 +10,6 @@ import {
   getRecentCustomers,
 } from "@/lib/supabase/admin-analytics";
 
-import AdminNavbar from "@/components/admin/AdminNavbar";
 
 interface Analytics {
   totalRevenue: number;
@@ -94,8 +93,6 @@ export default function AdminPage() {
       <h1 className="text-5xl font-bold mb-10">
         Admin Dashboard
       </h1>
-
-      <AdminNavbar />
 
       <div
         className="
