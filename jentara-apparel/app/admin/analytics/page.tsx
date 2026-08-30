@@ -1,169 +1,214 @@
 // app/admin/analytics/page.tsx
-
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  getAnalytics,
+  getOrdersByMonth,
+  getRevenueByMonth,
+  getTopProducts,
+  type Analytics,
+  type OrderPoint,
+  type RevenuePoint,
+  type TopProduct,
+} from "@/lib/supabase/admin-analytics";
 
-const metrics = [
-  {
-    label: "Revenue",
-    value: "₹0",
-    detail: "This month",
-  },
-  {
-    label: "Orders",
-    value: "0",
-    detail: "This month",
-  },
-  {
-    label: "Customers",
-    value: "0",
-    detail: "Total",
-  },
-  {
-    label: "Average order",
-    value: "₹0",
-    detail: "Current period",
-  },
-];
+const money = (value: number) =>
+  `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 
-const chartBars = [22, 38, 31, 56, 44, 68, 52, 74, 61, 82, 70, 91];
+function BarChart({
+  points,
+  value,
+  formatter,
+}: {
+  points: Array<{ month: string }>;
+  value: (index: number) => number;
+  formatter: (value: number) => string;
+}) {
+  const values = points.map((_, index) => value(index));
+  const max = Math.max(...values, 1);
+
+  return (
+    <div className="flex h-64 items-end gap-2 border-b border-[#451713]/15 px-2 pb-0 sm:gap-4">
+      {points.map((point, index) => {
+        const current = values[index];
+        const height = Math.max(4, (current / max) * 100);
+
+        return (
+          <div key={`${point.month}-${index}`} className="group flex h-full flex-1 items-end">
+            <div className="relative w-full">
+              <div
+                className="w-full bg-[#451713] transition-opacity group-hover:opacity-70"
+                style={{ height: `${height}%` }}
+                title={`${point.month}: ${formatter(current)}`}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function AnalyticsPage() {
-  return (
-    <div className="min-h-screen">
-      <div className="mx-auto max-w-[1500px] px-5 py-10 sm:px-8 lg:px-10 lg:py-14">
-        <header className="border-b border-[#451713]/15 pb-10">
-          <div className="flex items-center gap-3">
-            <span className="h-px w-8 bg-[#451713]" />
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [revenue, setRevenue] = useState<RevenuePoint[]>([]);
+  const [orders, setOrders] = useState<OrderPoint[]>([]);
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
+  const [error, setError] = useState("");
 
-            <p className="text-[8px] font-semibold uppercase tracking-[0.3em] text-[#451713]/45">
-              JENTARA / ANALYTICS
-            </p>
-          </div>
+  useEffect(() => {
+    Promise.all([
+      getAnalytics(),
+      getRevenueByMonth(),
+      getOrdersByMonth(),
+      getTopProducts(),
+    ])
+      .then(([metrics, revenueData, orderData, products]) => {
+        setAnalytics(metrics);
+        setRevenue(revenueData);
+        setOrders(orderData);
+        setTopProducts(products);
+      })
+      .catch((loadError) => {
+        console.error(loadError);
+        setError("Analytics could not be loaded.");
+      });
+  }, []);
 
-          <div className="mt-6 flex flex-col justify-between gap-6 md:flex-row md:items-end">
-            <div>
-              <h1 className="font-serif text-[48px] leading-[0.9] tracking-[-0.06em] sm:text-[68px]">
-                Analytics
-              </h1>
+  if (error) {
+    return (
+      <div className="mx-auto max-w-[1500px] px-5 py-24 text-center">
+        <p className="font-serif text-3xl">{error}</p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="mt-6 border-b border-[#451713] pb-1 text-[9px] font-semibold uppercase tracking-[0.18em]"
+        >
+          Try again →
+        </button>
+      </div>
+    );
+  }
 
-              <p className="mt-4 max-w-lg text-[12px] leading-6 text-[#451713]/55">
-                Understand the movement of the JENTARA store through sales,
-                orders and customer behaviour.
-              </p>
-            </div>
-
-            <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#451713]/40">
-              Current period
-            </span>
-          </div>
-        </header>
-
-        <section className="grid border-b border-[#451713]/15 sm:grid-cols-2 lg:grid-cols-4">
-          {metrics.map((metric) => (
-            <div
-              key={metric.label}
-              className="border-b border-[#451713]/10 px-1 py-8 sm:border-r sm:px-6 lg:border-b-0"
-            >
-              <p className="text-[8px] font-semibold uppercase tracking-[0.22em] text-[#451713]/40">
-                {metric.label}
-              </p>
-
-              <p className="mt-4 font-serif text-4xl tracking-[-0.05em]">
-                {metric.value}
-              </p>
-
-              <p className="mt-2 text-[10px] text-[#451713]/45">
-                {metric.detail}
-              </p>
-            </div>
-          ))}
-        </section>
-
-        <section className="grid gap-10 py-10 lg:grid-cols-[1.6fr_1fr]">
-          <div className="border border-[#451713]/12 bg-[#f5ede4]">
-            <div className="flex items-end justify-between border-b border-[#451713]/10 p-6">
-              <div>
-                <p className="text-[8px] font-semibold uppercase tracking-[0.25em] text-[#451713]/40">
-                  Performance
-                </p>
-
-                <h2 className="mt-2 font-serif text-3xl tracking-[-0.04em]">
-                  Revenue
-                </h2>
-              </div>
-
-              <span className="text-[9px] uppercase tracking-[0.15em] text-[#451713]/40">
-                12 periods
-              </span>
-            </div>
-
-            <div className="flex h-[300px] items-end gap-2 px-5 pb-6 pt-10 sm:gap-4 sm:px-8">
-              {chartBars.map((height, index) => (
-                <div
-                  key={index}
-                  className="flex h-full flex-1 items-end"
-                >
-                  <div
-                    className="w-full bg-[#451713]/80 transition hover:bg-[#451713]"
-                    style={{ height: `${height}%` }}
-                    title={`Period ${index + 1}`}
-                  />
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-between border-t border-[#451713]/10 px-6 py-4 text-[8px] uppercase tracking-[0.15em] text-[#451713]/35">
-              <span>Earlier</span>
-              <span>Now</span>
-            </div>
-          </div>
-
-          <div className="border border-[#451713]/12">
-            <div className="border-b border-[#451713]/10 p-6">
-              <p className="text-[8px] font-semibold uppercase tracking-[0.25em] text-[#451713]/40">
-                Sales
-              </p>
-
-              <h2 className="mt-2 font-serif text-3xl tracking-[-0.04em]">
-                Categories
-              </h2>
-            </div>
-
-            <div className="p-6">
-              <div className="flex min-h-[240px] items-center justify-center border border-dashed border-[#451713]/15">
-                <div className="max-w-xs text-center">
-                  <p className="font-serif text-2xl">
-                    No sales data yet.
-                  </p>
-
-                  <p className="mt-3 text-[11px] leading-5 text-[#451713]/50">
-                    Category performance will appear here once orders begin
-                    flowing through the store.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div className="flex flex-wrap gap-3 border-t border-[#451713]/15 pt-8">
-          <Link
-            href="/admin/orders"
-            className="inline-flex min-h-11 items-center bg-[#451713] px-6 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#f5ede4] transition hover:bg-[#5c211b]"
-          >
-            View orders →
-          </Link>
-
-          <Link
-            href="/admin/products"
-            className="inline-flex min-h-11 items-center border border-[#451713]/20 px-6 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#451713] transition hover:bg-[#451713]/5"
-          >
-            View products
-          </Link>
+  if (!analytics) {
+    return (
+      <div className="mx-auto max-w-[1500px] px-5 py-14 sm:px-8 lg:px-10">
+        <div className="animate-pulse">
+          <div className="h-2 w-32 bg-[#451713]/10" />
+          <div className="mt-7 h-16 w-64 bg-[#451713]/10" />
+          <div className="mt-12 h-80 border border-[#451713]/10" />
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-[1500px] px-5 py-10 sm:px-8 lg:px-10 lg:py-14">
+      <header className="border-b border-[#451713]/15 pb-10">
+        <div className="flex items-center gap-3">
+          <span className="h-px w-8 bg-[#451713]" />
+          <p className="text-[8px] font-semibold uppercase tracking-[0.3em] text-[#451713]/45">
+            JENTARA / ANALYTICS
+          </p>
+        </div>
+        <h1 className="mt-6 font-serif text-[52px] leading-[0.9] tracking-[-0.06em] sm:text-[72px]">
+          Analytics
+        </h1>
+        <p className="mt-4 max-w-xl text-[12px] leading-6 text-[#451713]/55">
+          Twelve months of revenue and order movement, with the products driving the collection.
+        </p>
+      </header>
+
+      <section className="grid border-b border-[#451713]/15 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          ["Revenue", money(analytics.totalRevenue)],
+          ["Orders", analytics.totalOrders.toLocaleString("en-IN")],
+          ["Average order", money(analytics.averageOrderValue)],
+          ["Customers", analytics.totalCustomers.toLocaleString("en-IN")],
+        ].map(([label, value]) => (
+          <div key={label} className="border-b border-[#451713]/10 px-1 py-8 sm:border-r sm:px-6 lg:border-b-0">
+            <p className="text-[8px] font-semibold uppercase tracking-[0.22em] text-[#451713]/40">{label}</p>
+            <p className="mt-4 font-serif text-4xl tracking-[-0.05em]">{value}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="grid gap-10 py-10 lg:grid-cols-2">
+        <article className="border border-[#451713]/12 p-6 sm:p-8">
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-[8px] font-semibold uppercase tracking-[0.22em] text-[#451713]/40">Financial overview</p>
+              <h2 className="mt-2 font-serif text-3xl">Revenue</h2>
+            </div>
+            <span className="text-[9px] uppercase tracking-[0.14em] text-[#451713]/35">12 months</span>
+          </div>
+
+          <div className="mt-8">
+            <BarChart
+              points={revenue}
+              value={(index) => revenue[index]?.revenue ?? 0}
+              formatter={money}
+            />
+            <div className="mt-3 flex justify-between text-[8px] uppercase tracking-[0.14em] text-[#451713]/35">
+              {revenue.map((point, index) => (
+                <span key={`${point.month}-${index}`}>{point.month}</span>
+              ))}
+            </div>
+          </div>
+        </article>
+
+        <article className="border border-[#451713]/12 p-6 sm:p-8">
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-[8px] font-semibold uppercase tracking-[0.22em] text-[#451713]/40">Order activity</p>
+              <h2 className="mt-2 font-serif text-3xl">Orders</h2>
+            </div>
+            <span className="text-[9px] uppercase tracking-[0.14em] text-[#451713]/35">12 months</span>
+          </div>
+
+          <div className="mt-8">
+            <BarChart
+              points={orders}
+              value={(index) => orders[index]?.orders ?? 0}
+              formatter={(value) => `${value} orders`}
+            />
+            <div className="mt-3 flex justify-between text-[8px] uppercase tracking-[0.14em] text-[#451713]/35">
+              {orders.map((point, index) => (
+                <span key={`${point.month}-${index}`}>{point.month}</span>
+              ))}
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section className="border-t border-[#451713]/15 py-10">
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-[8px] font-semibold uppercase tracking-[0.22em] text-[#451713]/40">Product performance</p>
+            <h2 className="mt-2 font-serif text-4xl">Top Products</h2>
+          </div>
+          <Link href="/admin/products" className="text-[9px] font-semibold uppercase tracking-[0.18em] underline underline-offset-4">
+            Manage products →
+          </Link>
+        </div>
+
+        <div className="mt-7 divide-y divide-[#451713]/10 border-y border-[#451713]/12">
+          {topProducts.length === 0 ? (
+            <div className="py-16 text-center text-[11px] text-[#451713]/45">No product sales yet.</div>
+          ) : (
+            topProducts.map((product, index) => (
+              <div key={product.productName} className="grid gap-3 px-5 py-5 sm:grid-cols-[50px_1fr_100px_130px] sm:items-center sm:px-6">
+                <span className="font-serif text-2xl text-[#451713]/35">0{index + 1}</span>
+                <span className="text-[12px]">{product.productName}</span>
+                <span className="text-[10px] text-[#451713]/50">{product.quantity} sold</span>
+                <span className="text-[11px] font-semibold sm:text-right">{money(product.revenue)}</span>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,5 +1,4 @@
 // lib/supabase/admin-analytics.ts
-
 import { supabase } from "./client";
 
 export interface Analytics {
@@ -7,6 +6,9 @@ export interface Analytics {
   totalOrders: number;
   totalProducts: number;
   totalCustomers: number;
+  monthRevenue: number;
+  monthOrders: number;
+  averageOrderValue: number;
 }
 
 export interface RevenuePoint {
@@ -27,358 +29,179 @@ export interface TopProduct {
 
 export interface RecentOrder {
   id: string;
-  customer_name: string;
+  customer_name: string | null;
   total_amount: number;
-  status: string;
+  status: string | null;
   created_at: string;
 }
 
 export interface RecentCustomer {
   id: string;
   email: string;
-  role: string;
-  created_at: string;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface OrderRecord {
-  id: string;
-  total_amount: number | string | null;
-  status: string | null;
-  created_at: string;
-  customer_name?: string | null;
-}
-
-interface OrderItemRecord {
-  order_id: string;
-  product_name: string | null;
-  price: number | string | null;
-  quantity: number | null;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface ProductRecord {
-  id: string;
-  name?: string | null;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface ProfileRecord {
-  id: string;
-  email: string;
   role: string | null;
   created_at: string;
 }
 
-function getMonthKey(date: Date): string {
-  return `${date.getFullYear()}-${String(
-    date.getMonth() + 1,
-  ).padStart(2, "0")}`;
+function monthKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function getMonthLabel(date: Date): string {
-  return new Intl.DateTimeFormat("en-IN", {
-    month: "short",
-  }).format(date);
+function monthLabel(date: Date): string {
+  return new Intl.DateTimeFormat("en-IN", { month: "short" }).format(date);
 }
 
-function getLastMonths(count: number): Date[] {
-  const months: Date[] = [];
+function lastMonths(count: number): Date[] {
   const now = new Date();
 
-  for (let index = count - 1; index >= 0; index -= 1) {
-    months.push(
-      new Date(
-        now.getFullYear(),
-        now.getMonth() - index,
-        1,
-      ),
-    );
-  }
-
-  return months;
+  return Array.from({ length: count }, (_, index) => {
+    const offset = count - 1 - index;
+    return new Date(now.getFullYear(), now.getMonth() - offset, 1);
+  });
 }
 
 export async function getAnalytics(): Promise<Analytics> {
-  const [
-    ordersResult,
-    productsResult,
-    customersResult,
-  ] = await Promise.all([
-    supabase
-      .from("orders")
-      .select("total_amount"),
-
-    supabase
-      .from("products")
-      .select("id"),
-
-    supabase
-      .from("profiles")
-      .select("id"),
+  const [ordersResult, productsResult, customersResult] = await Promise.all([
+    supabase.from("orders").select("total_amount, created_at"),
+    supabase.from("products").select("id"),
+    supabase.from("profiles").select("id"),
   ]);
 
-  if (ordersResult.error) {
-    throw ordersResult.error;
-  }
+  if (ordersResult.error) throw ordersResult.error;
+  if (productsResult.error) throw productsResult.error;
+  if (customersResult.error) throw customersResult.error;
 
-  if (productsResult.error) {
-    throw productsResult.error;
-  }
+  const orders = ordersResult.data ?? [];
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${now.getMonth()}`;
 
-  if (customersResult.error) {
-    throw customersResult.error;
-  }
+  let totalRevenue = 0;
+  let monthRevenue = 0;
+  let monthOrders = 0;
 
-  const totalRevenue = (
-    ordersResult.data ?? []
-  ).reduce(
-    (sum, order) =>
-      sum + Number(order.total_amount ?? 0),
-    0,
-  );
+  for (const order of orders) {
+    const amount = Number(order.total_amount ?? 0);
+    const date = new Date(order.created_at);
+
+    totalRevenue += amount;
+
+    if (`${date.getFullYear()}-${date.getMonth()}` === currentMonth) {
+      monthRevenue += amount;
+      monthOrders += 1;
+    }
+  }
 
   return {
     totalRevenue,
-    totalOrders: ordersResult.data?.length ?? 0,
+    totalOrders: orders.length,
     totalProducts: productsResult.data?.length ?? 0,
     totalCustomers: customersResult.data?.length ?? 0,
+    monthRevenue,
+    monthOrders,
+    averageOrderValue: orders.length ? totalRevenue / orders.length : 0,
   };
 }
 
-export async function getRecentOrders(): Promise<
-  RecentOrder[]
-> {
+export async function getRecentOrders(): Promise<RecentOrder[]> {
   const { data, error } = await supabase
     .from("orders")
-    .select(
-      "id, customer_name, total_amount, status, created_at",
-    )
-    .order("created_at", {
-      ascending: false,
-    })
-    .limit(5);
+    .select("id, customer_name, total_amount, status, created_at")
+    .order("created_at", { ascending: false })
+    .limit(8);
 
-  if (error) {
-    throw error;
-  }
-
+  if (error) throw error;
   return (data ?? []) as RecentOrder[];
 }
 
-export async function getRecentCustomers(): Promise<
-  RecentCustomer[]
-> {
+export async function getRecentCustomers(): Promise<RecentCustomer[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select(
-      "id, email, role, created_at",
-    )
-    .order("created_at", {
-      ascending: false,
-    })
-    .limit(5);
+    .select("id, email, role, created_at")
+    .order("created_at", { ascending: false })
+    .limit(8);
 
-  if (error) {
-    throw error;
-  }
-
+  if (error) throw error;
   return (data ?? []) as RecentCustomer[];
 }
 
-export async function getRevenueByMonth(
-  monthCount = 12,
-): Promise<RevenuePoint[]> {
-  const months = getLastMonths(monthCount);
-
+export async function getRevenueByMonth(monthCount = 12): Promise<RevenuePoint[]> {
+  const months = lastMonths(monthCount);
   const startDate = months[0];
 
   const { data, error } = await supabase
     .from("orders")
     .select("total_amount, created_at")
-    .gte(
-      "created_at",
-      startDate.toISOString(),
-    )
-    .order("created_at", {
-      ascending: true,
-    });
+    .gte("created_at", startDate.toISOString())
+    .order("created_at", { ascending: true });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
-  const revenueMap = new Map<
-    string,
-    number
-  >();
-
-  for (const month of months) {
-    revenueMap.set(
-      getMonthKey(month),
-      0,
-    );
-  }
+  const totals = new Map(months.map((month) => [monthKey(month), 0]));
 
   for (const order of data ?? []) {
-    const date = new Date(order.created_at);
-    const key = getMonthKey(date);
+    const key = monthKey(new Date(order.created_at));
 
-    if (!revenueMap.has(key)) {
-      continue;
+    if (totals.has(key)) {
+      totals.set(key, (totals.get(key) ?? 0) + Number(order.total_amount ?? 0));
     }
-
-    revenueMap.set(
-      key,
-      (revenueMap.get(key) ?? 0) +
-        Number(order.total_amount ?? 0),
-    );
   }
 
   return months.map((month) => ({
-    month: getMonthLabel(month),
-    revenue:
-      revenueMap.get(
-        getMonthKey(month),
-      ) ?? 0,
+    month: monthLabel(month),
+    revenue: totals.get(monthKey(month)) ?? 0,
   }));
 }
 
-export async function getOrdersByMonth(
-  monthCount = 12,
-): Promise<OrderPoint[]> {
-  const months = getLastMonths(monthCount);
-
+export async function getOrdersByMonth(monthCount = 12): Promise<OrderPoint[]> {
+  const months = lastMonths(monthCount);
   const startDate = months[0];
 
   const { data, error } = await supabase
     .from("orders")
     .select("created_at")
-    .gte(
-      "created_at",
-      startDate.toISOString(),
-    )
-    .order("created_at", {
-      ascending: true,
-    });
+    .gte("created_at", startDate.toISOString())
+    .order("created_at", { ascending: true });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
-  const orderMap = new Map<
-    string,
-    number
-  >();
-
-  for (const month of months) {
-    orderMap.set(
-      getMonthKey(month),
-      0,
-    );
-  }
+  const totals = new Map(months.map((month) => [monthKey(month), 0]));
 
   for (const order of data ?? []) {
-    const date = new Date(order.created_at);
-    const key = getMonthKey(date);
+    const key = monthKey(new Date(order.created_at));
 
-    if (!orderMap.has(key)) {
-      continue;
+    if (totals.has(key)) {
+      totals.set(key, (totals.get(key) ?? 0) + 1);
     }
-
-    orderMap.set(
-      key,
-      (orderMap.get(key) ?? 0) + 1,
-    );
   }
 
   return months.map((month) => ({
-    month: getMonthLabel(month),
-    orders:
-      orderMap.get(
-        getMonthKey(month),
-      ) ?? 0,
+    month: monthLabel(month),
+    orders: totals.get(monthKey(month)) ?? 0,
   }));
 }
 
-export async function getTopProducts(
-  limit = 5,
-): Promise<TopProduct[]> {
+export async function getTopProducts(limit = 5): Promise<TopProduct[]> {
   const { data, error } = await supabase
     .from("order_items")
-    .select(
-      "order_id, product_name, price, quantity",
-    );
+    .select("product_name, price, quantity");
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
-  const productMap = new Map<
-    string,
-    {
-      quantity: number;
-      revenue: number;
-    }
-  >();
+  const totals = new Map<string, { quantity: number; revenue: number }>();
 
-  for (const item of (data ??
-    []) as OrderItemRecord[]) {
-    const name =
-      item.product_name?.trim() ||
-      "Unknown product";
+  for (const item of data ?? []) {
+    const name = String(item.product_name ?? "Unknown product");
+    const quantity = Number(item.quantity ?? 0);
+    const revenue = Number(item.price ?? 0) * quantity;
+    const current = totals.get(name) ?? { quantity: 0, revenue: 0 };
 
-    const quantity = Number(
-      item.quantity ?? 0,
-    );
-
-    const price = Number(
-      item.price ?? 0,
-    );
-
-    const existing =
-      productMap.get(name) ?? {
-        quantity: 0,
-        revenue: 0,
-      };
-
-    productMap.set(name, {
-      quantity:
-        existing.quantity + quantity,
-      revenue:
-        existing.revenue +
-        price * quantity,
+    totals.set(name, {
+      quantity: current.quantity + quantity,
+      revenue: current.revenue + revenue,
     });
   }
 
-  return Array.from(
-    productMap.entries(),
-  )
-    .map(
-      ([productName, values]) => ({
-        productName,
-        quantity: values.quantity,
-        revenue: values.revenue,
-      }),
-    )
-    .sort(
-      (a, b) =>
-        b.quantity - a.quantity,
-    )
+  return Array.from(totals.entries())
+    .map(([productName, values]) => ({ productName, ...values }))
+    .sort((a, b) => b.quantity - a.quantity)
     .slice(0, limit);
-}
-
-export async function getProductCount(): Promise<number> {
-  const { count, error } = await supabase
-    .from("products")
-    .select("id", {
-      count: "exact",
-      head: true,
-    });
-
-  if (error) {
-    throw error;
-  }
-
-  return count ?? 0;
 }
