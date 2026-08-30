@@ -7,16 +7,32 @@ export interface Analytics {
   totalOrders: number;
   totalProducts: number;
   totalCustomers: number;
+
+  monthRevenue: number;
+  monthOrders: number;
+
+  pendingOrders: number;
+  processingOrders: number;
+  shippedOrders: number;
+  deliveredOrders: number;
+  cancelledOrders: number;
+
+  averageOrderValue: number;
+
+  lowStockProducts: number;
+  outOfStockProducts: number;
+
+  featuredProducts: number;
 }
 
 export interface RecentOrder {
   id: string;
   customer_name: string;
+  customer_email: string | null;
   total_amount: number;
   status: string;
   created_at: string;
-  customer_email?: string | null;
-  user_id?: string | null;
+  user_id: string | null;
 }
 
 export interface RecentCustomer {
@@ -65,6 +81,35 @@ export interface AnalyticsDataset {
   orderItems: AnalyticsOrderItem[];
   products: AnalyticsProduct[];
   customers: AnalyticsCustomer[];
+}
+
+function normalizeStatus(
+  status: string | null | undefined,
+): string {
+  return String(status ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+}
+
+function isSameMonth(
+  dateValue: string | null | undefined,
+  now: Date,
+): boolean {
+  if (!dateValue) {
+    return false;
+  }
+
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return false;
+  }
+
+  return (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth()
+  );
 }
 
 /**
@@ -141,15 +186,13 @@ export async function getAnalyticsDataset(): Promise<AnalyticsDataset> {
 }
 
 /**
- * Backward-compatible dashboard KPI loader.
- *
- * Existing app/admin/page.tsx uses this function.
- * Keep it so the main dashboard and analytics page
- * can use the same Supabase data layer.
+ * Calculates dashboard KPIs from the current Supabase dataset.
  */
 export async function getAnalytics(): Promise<Analytics> {
   const dataset =
     await getAnalyticsDataset();
+
+  const now = new Date();
 
   const totalRevenue =
     dataset.orders.reduce(
@@ -160,6 +203,71 @@ export async function getAnalytics(): Promise<Analytics> {
         ),
       0,
     );
+
+  const monthOrders =
+    dataset.orders.filter((order) =>
+      isSameMonth(
+        order.created_at,
+        now,
+      ),
+    );
+
+  const monthRevenue =
+    monthOrders.reduce(
+      (sum, order) =>
+        sum +
+        Number(
+          order.total_amount || 0,
+        ),
+      0,
+    );
+
+  const statusCounts =
+    dataset.orders.reduce<
+      Record<string, number>
+    >((counts, order) => {
+      const status =
+        normalizeStatus(
+          order.status,
+        );
+
+      counts[status] =
+        (counts[status] ?? 0) + 1;
+
+      return counts;
+    }, {});
+
+  const lowStockProducts =
+    dataset.products.filter(
+      (product) => {
+        const stock =
+          Number(
+            product.stock ?? 0,
+          );
+
+        return stock > 0 && stock <= 5;
+      },
+    ).length;
+
+  const outOfStockProducts =
+    dataset.products.filter(
+      (product) =>
+        Number(
+          product.stock ?? 0,
+        ) <= 0,
+    ).length;
+
+  const featuredProducts =
+    dataset.products.filter(
+      (product) =>
+        product.featured === true,
+    ).length;
+
+  const averageOrderValue =
+    dataset.orders.length > 0
+      ? totalRevenue /
+        dataset.orders.length
+      : 0;
 
   return {
     totalRevenue,
@@ -172,6 +280,34 @@ export async function getAnalytics(): Promise<Analytics> {
 
     totalCustomers:
       dataset.customers.length,
+
+    monthRevenue,
+
+    monthOrders:
+      monthOrders.length,
+
+    pendingOrders:
+      statusCounts.pending ?? 0,
+
+    processingOrders:
+      statusCounts.processing ?? 0,
+
+    shippedOrders:
+      statusCounts.shipped ?? 0,
+
+    deliveredOrders:
+      statusCounts.delivered ?? 0,
+
+    cancelledOrders:
+      statusCounts.cancelled ?? 0,
+
+    averageOrderValue,
+
+    lowStockProducts,
+
+    outOfStockProducts,
+
+    featuredProducts,
   };
 }
 
@@ -207,7 +343,8 @@ export async function getRecentOrders(): Promise<
         ),
 
       customer_email:
-        order.customer_email,
+        order.customer_email ??
+        null,
 
       total_amount:
         Number(
@@ -227,7 +364,8 @@ export async function getRecentOrders(): Promise<
         ),
 
       user_id:
-        order.user_id,
+        order.user_id ??
+        null,
     })) ?? []
   );
 }
@@ -258,22 +396,16 @@ export async function getRecentCustomers(): Promise<
       id: String(customer.id),
 
       email:
-        String(
-          customer.email ??
-            "Email unavailable",
-        ),
+        customer.email ??
+        "Email unavailable",
 
       role:
-        String(
-          customer.role ??
-            "customer",
-        ),
+        customer.role ??
+        "customer",
 
       created_at:
-        String(
-          customer.created_at ??
-            "",
-        ),
+        customer.created_at ??
+        "",
     })) ?? []
   );
 }
