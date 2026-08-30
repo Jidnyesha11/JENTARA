@@ -1,24 +1,107 @@
-// components/layout/ProfileMenu.tsx
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "@/lib/supabase/auth";
+import { supabase } from "@/lib/supabase/client";
+
+type AdminRole =
+  | "support"
+  | "operations"
+  | "admin"
+  | "super_admin";
+
+const ADMIN_ROLES = new Set<AdminRole>([
+  "support",
+  "operations",
+  "admin",
+  "super_admin",
+]);
+
+function isAdminRole(
+  value: string | null,
+): value is AdminRole {
+  return ADMIN_ROLES.has(
+    value as AdminRole,
+  );
+}
+
+function roleLabel(
+  role: AdminRole,
+): string {
+  return role
+    .replace("_", " ")
+    .replace(/\b\w/g, (letter) =>
+      letter.toUpperCase(),
+    );
+}
 
 export default function ProfileMenu() {
   const router = useRouter();
   const { user, loading } = useAuth();
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] =
+    useState(false);
 
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [role, setRole] =
+    useState<string | null>(null);
+
+  const menuRef =
+    useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleOutsideClick(event: MouseEvent) {
+    let cancelled = false;
+
+    async function loadRole() {
+      if (!user) {
+        setRole(null);
+        return;
+      }
+
+      const { data, error } =
+        await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+
+      if (cancelled) {
+        return;
+      }
+
+      if (error) {
+        console.error(
+          "PROFILE ROLE ERROR:",
+          error,
+        );
+        setRole(null);
+        return;
+      }
+
+      setRole(
+        data?.role
+          ? String(
+              data.role,
+            ).toLowerCase()
+          : null,
+      );
+    }
+
+    void loadRole();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    function handleOutsideClick(
+      event: MouseEvent,
+    ) {
       if (
         menuRef.current &&
         !menuRef.current.contains(
@@ -43,7 +126,9 @@ export default function ProfileMenu() {
   }, []);
 
   useEffect(() => {
-    function handleEscape(event: KeyboardEvent) {
+    function handleEscape(
+      event: KeyboardEvent,
+    ) {
       if (event.key === "Escape") {
         setOpen(false);
       }
@@ -78,18 +163,21 @@ export default function ProfileMenu() {
     }
   }
 
-  const email = user?.email ?? "";
+  const email =
+    user?.email ?? "";
 
   const initial =
-    email.charAt(0).toUpperCase() || "J";
+    email.charAt(0).toUpperCase() ||
+    "J";
+
+  const hasAdminAccess =
+    isAdminRole(role);
 
   return (
     <div
       ref={menuRef}
       className="relative"
     >
-      {/* Profile trigger */}
-
       <button
         type="button"
         aria-label={
@@ -99,9 +187,12 @@ export default function ProfileMenu() {
         }
         aria-expanded={open}
         onClick={() =>
-          setOpen((current) => !current)
+          setOpen(
+            (current) => !current,
+          )
         }
         className="
+          relative
           flex
           h-10
           w-10
@@ -148,9 +239,32 @@ export default function ProfileMenu() {
             />
           </svg>
         )}
-      </button>
 
-      {/* Dropdown */}
+        {hasAdminAccess && (
+          <span
+            className="
+              absolute
+              -right-1
+              -top-1
+              flex
+              h-4
+              w-4
+              items-center
+              justify-center
+              rounded-full
+              border
+              border-[#f5ede4]
+              bg-[#451713]
+              text-[7px]
+              text-[#f5ede4]
+            "
+            title={`${roleLabel(role)} access`}
+            aria-label={`${roleLabel(role)} access`}
+          >
+            ◈
+          </span>
+        )}
+      </button>
 
       {open && (
         <div
@@ -168,8 +282,6 @@ export default function ProfileMenu() {
             shadow-[0_18px_50px_rgba(69,23,19,0.14)]
           "
         >
-          {/* Small pointer */}
-
           <span
             className="
               absolute
@@ -187,9 +299,7 @@ export default function ProfileMenu() {
 
           {!loading && user ? (
             <>
-              {/* Logged in header */}
-
-              <div className="relative border-b border-[#451713]/10 px-4 py-4">
+              <div className="border-b border-[#451713]/10 px-4 py-4">
                 <p className="text-[8px] font-semibold uppercase tracking-[0.25em] text-[#451713]/45">
                   Your account
                 </p>
@@ -197,14 +307,28 @@ export default function ProfileMenu() {
                 <p className="mt-2 truncate text-sm font-medium">
                   {email}
                 </p>
-              </div>
 
-              {/* Account links */}
+                {hasAdminAccess && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center bg-[#451713] text-[8px] text-[#f5ede4]">
+                      ◈
+                    </span>
+
+                    <span className="text-[8px] font-semibold uppercase tracking-[0.17em] text-[#451713]/55">
+                      {roleLabel(
+                        role,
+                      )}
+                    </span>
+                  </div>
+                )}
+              </div>
 
               <div className="py-2">
                 <Link
                   href="/profile"
-                  onClick={() => setOpen(false)}
+                  onClick={() =>
+                    setOpen(false)
+                  }
                   className="
                     group
                     flex
@@ -232,7 +356,9 @@ export default function ProfileMenu() {
 
                 <Link
                   href="/orders"
-                  onClick={() => setOpen(false)}
+                  onClick={() =>
+                    setOpen(false)
+                  }
                   className="
                     group
                     flex
@@ -253,14 +379,14 @@ export default function ProfileMenu() {
                     My Orders
                   </span>
 
-                  <span className="transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
+                  <span>→</span>
                 </Link>
 
                 <Link
                   href="/profile/addresses"
-                  onClick={() => setOpen(false)}
+                  onClick={() =>
+                    setOpen(false)
+                  }
                   className="
                     group
                     flex
@@ -281,14 +407,14 @@ export default function ProfileMenu() {
                     Addresses
                   </span>
 
-                  <span className="transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
+                  <span>→</span>
                 </Link>
 
                 <Link
                   href="/wishlist"
-                  onClick={() => setOpen(false)}
+                  onClick={() =>
+                    setOpen(false)
+                  }
                   className="
                     group
                     flex
@@ -309,14 +435,14 @@ export default function ProfileMenu() {
                     Wishlist
                   </span>
 
-                  <span className="transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
+                  <span>→</span>
                 </Link>
 
                 <Link
                   href="/cart"
-                  onClick={() => setOpen(false)}
+                  onClick={() =>
+                    setOpen(false)
+                  }
                   className="
                     group
                     flex
@@ -337,18 +463,54 @@ export default function ProfileMenu() {
                     Shopping Cart
                   </span>
 
-                  <span className="transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
+                  <span>→</span>
                 </Link>
-              </div>
 
-              {/* Logout */}
+                {hasAdminAccess && (
+                  <div className="mt-2 border-t border-[#451713]/10 pt-2">
+                    <Link
+                      href="/admin"
+                      onClick={() =>
+                        setOpen(false)
+                      }
+                      className="
+                        group
+                        flex
+                        min-h-12
+                        items-center
+                        justify-between
+                        bg-[#451713]
+                        px-4
+                        text-[9px]
+                        font-semibold
+                        uppercase
+                        tracking-[0.18em]
+                        text-[#f5ede4]
+                        transition
+                        hover:bg-[#5d211b]
+                      "
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>
+                          ◈
+                        </span>
+                        Admin Panel
+                      </span>
+
+                      <span className="transition-transform group-hover:translate-x-1">
+                        →
+                      </span>
+                    </Link>
+                  </div>
+                )}
+              </div>
 
               <div className="border-t border-[#451713]/10 p-2">
                 <button
                   type="button"
-                  onClick={handleLogout}
+                  onClick={
+                    handleLogout
+                  }
                   className="
                     flex
                     w-full
@@ -370,16 +532,12 @@ export default function ProfileMenu() {
                     Logout
                   </span>
 
-                  <span>
-                    ↗
-                  </span>
+                  <span>↗</span>
                 </button>
               </div>
             </>
           ) : (
             <>
-              {/* Logged out header */}
-
               <div className="relative px-4 py-5">
                 <p className="text-[8px] font-semibold uppercase tracking-[0.25em] text-[#451713]/45">
                   Welcome to JENTARA
@@ -390,15 +548,18 @@ export default function ProfileMenu() {
                 </h3>
 
                 <p className="mt-2 text-[10px] leading-5 text-[#451713]/55">
-                  Sign in to view orders, save
-                  favourites and manage your account.
+                  Sign in to view orders,
+                  save favourites and
+                  manage your account.
                 </p>
               </div>
 
               <div className="space-y-2 border-t border-[#451713]/10 p-2">
                 <Link
                   href="/login"
-                  onClick={() => setOpen(false)}
+                  onClick={() =>
+                    setOpen(false)
+                  }
                   className="
                     flex
                     min-h-12
@@ -426,7 +587,9 @@ export default function ProfileMenu() {
 
                 <Link
                   href="/register"
-                  onClick={() => setOpen(false)}
+                  onClick={() =>
+                    setOpen(false)
+                  }
                   className="
                     flex
                     min-h-12
@@ -467,3 +630,4 @@ export default function ProfileMenu() {
     </div>
   );
 }
+

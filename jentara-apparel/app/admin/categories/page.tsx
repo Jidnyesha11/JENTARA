@@ -16,6 +16,10 @@ import {
   type AdminCategory,
 } from "@/lib/supabase/admin-categories";
 
+import {
+  notifyCategoriesUpdated,
+} from "@/lib/supabase/categories";
+
 function slugify(value: string): string {
   return value
     .trim()
@@ -175,6 +179,7 @@ export default function CategoriesPage() {
 
       resetForm();
       await refreshCategories();
+      notifyCategoriesUpdated();
     } catch (saveError) {
       console.error(
         "Saving category failed:",
@@ -223,6 +228,7 @@ export default function CategoriesPage() {
       );
 
       await refreshCategories();
+      notifyCategoriesUpdated();
     } catch (deleteError) {
       console.error(
         "Deleting category failed:",

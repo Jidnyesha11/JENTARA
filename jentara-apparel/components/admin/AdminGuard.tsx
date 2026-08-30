@@ -10,7 +10,12 @@ interface AdminGuardProps {
   children: ReactNode;
 }
 
-const ADMIN_ROLES = new Set(["admin", "super_admin", "owner"]);
+const ADMIN_ROLES = new Set([
+  "support",
+  "operations",
+  "admin",
+  "super_admin",
+]);
 
 export default function AdminGuard({ children }: AdminGuardProps) {
   const router = useRouter();

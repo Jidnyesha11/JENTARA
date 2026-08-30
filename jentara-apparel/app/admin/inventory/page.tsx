@@ -16,18 +16,30 @@ export default function InventoryPage() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function loadInventory() {
-    try {
-      setProducts(await getInventory());
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
+    let isMounted = true;
+
+    const loadInventory = async () => {
+      try {
+        const inventory = await getInventory();
+
+        if (isMounted) {
+          setProducts(inventory);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     void loadInventory();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filtered = useMemo(() => {

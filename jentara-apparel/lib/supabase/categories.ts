@@ -1,4 +1,3 @@
-// lib/supabase/categories.ts
 
 import { supabase } from "./client";
 
@@ -22,36 +21,63 @@ export interface CategoryProduct {
   created_at: string | null;
   slug: string | null;
   featured: boolean | null;
-  size_inventory: Record<string, number> | null;
+  size_inventory: Record<
+    string,
+    number
+  > | null;
 }
 
-export async function getCategories(): Promise<Category[]> {
-  const { data, error } = await supabase
-    .from("categories")
-    .select("*")
-    .order("name", { ascending: true });
+export async function getCategories(): Promise<
+  Category[]
+> {
+  const { data, error } =
+    await supabase
+      .from("categories")
+      .select("*")
+      .order("name", {
+        ascending: true,
+      });
 
   if (error) {
-    console.error("GET CATEGORIES ERROR:", error);
+    console.error(
+      "GET CATEGORIES ERROR:",
+      error,
+    );
+
     throw error;
   }
 
-  return (data ?? []) as Category[];
+  return (data ??
+    []) as Category[];
+}
+
+export function notifyCategoriesUpdated(): void {
+  if (
+    typeof window !==
+    "undefined"
+  ) {
+    window.dispatchEvent(
+      new CustomEvent(
+        "jentara:categories-updated",
+      ),
+    );
+  }
 }
 
 export async function getCategoryBySlug(
-  slug: string
+  slug: string,
 ): Promise<Category | null> {
-  const { data, error } = await supabase
-    .from("categories")
-    .select("*")
-    .eq("slug", slug)
-    .maybeSingle();
+  const { data, error } =
+    await supabase
+      .from("categories")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle();
 
   if (error) {
     console.error(
       "GET CATEGORY BY SLUG ERROR:",
-      error
+      error,
     );
 
     throw error;
@@ -61,30 +87,34 @@ export async function getCategoryBySlug(
 }
 
 export async function getProductsByCategorySlug(
-  slug: string
+  slug: string,
 ): Promise<CategoryProduct[]> {
-  const category = await getCategoryBySlug(slug);
+  const category =
+    await getCategoryBySlug(slug);
 
   if (!category) {
     return [];
   }
 
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("category_id", category.id)
-    .order("created_at", {
-      ascending: false,
-    });
+  const { data, error } =
+    await supabase
+      .from("products")
+      .select("*")
+      .eq("category_id", category.id)
+      .order("created_at", {
+        ascending: false,
+      });
 
   if (error) {
     console.error(
       "GET CATEGORY PRODUCTS ERROR:",
-      error
+      error,
     );
 
     throw error;
   }
 
-  return (data ?? []) as CategoryProduct[];
+  return (data ??
+    []) as CategoryProduct[];
 }
+
