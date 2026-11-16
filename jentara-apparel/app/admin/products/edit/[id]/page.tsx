@@ -4,8 +4,12 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getCategories } from "@/lib/supabase/categories";
-import { getProductById, updateProduct } from "@/lib/supabase/admin-products";
+import { getCategories, type Category } from "@/lib/supabase/categories";
+import {
+  getProductById,
+  updateProduct,
+  type AdminProduct,
+} from "@/lib/supabase/admin-products";
 import { uploadGalleryImage } from "@/lib/supabase/product-images";
 import { uploadProductImage } from "@/lib/supabase/storage";
 
@@ -15,10 +19,10 @@ export default function EditProductPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
 
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<AdminProduct | null>(null);
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -93,19 +97,23 @@ export default function EditProductPage() {
       }
 
       setImageUrl(nextImageUrl);
-      setProduct((current: any) => ({
-        ...current,
-        name,
-        slug,
-        description,
-        price: Number(price),
-        original_price: Number(originalPrice || price),
-        category_id: categoryId,
-        featured,
-        image_url: nextImageUrl,
-        size_inventory: inventory,
-        stock,
-      }));
+      setProduct((current) =>
+        current
+          ? {
+              ...current,
+              name,
+              slug,
+              description,
+              price: Number(price),
+              original_price: Number(originalPrice || price),
+              category_id: categoryId,
+              featured,
+              image_url: nextImageUrl,
+              size_inventory: inventory,
+              stock,
+            }
+          : current,
+      );
 
       window.alert("Product updated.");
     } catch (error) {

@@ -19,19 +19,26 @@ export default function QueriesPage() {
   const [queries, setQueries] = useState<CustomerQuery[]>([]);
   const [filter, setFilter] = useState<"all" | QueryStatus>("all");
   const [loading, setLoading] = useState(true);
-
-  async function loadQueries() {
-    try {
-      setQueries(await getAdminQueries());
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    void loadQueries();
+    let active = true;
+
+    getAdminQueries()
+      .then((data) => {
+        if (active) setQueries(data);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (active) setLoadError(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const filtered = useMemo(
@@ -99,6 +106,10 @@ export default function QueriesPage() {
 
       {loading ? (
         <div className="py-20 text-center text-[9px] uppercase tracking-[0.2em] text-[#451713]/40">Loading queries</div>
+      ) : loadError ? (
+        <p role="alert" className="border-y border-red-900/15 py-12 text-center text-[11px] text-red-900/75">
+          Customer queries could not be loaded. Refresh the page to try again.
+        </p>
       ) : filtered.length === 0 ? (
         <div className="border-y border-[#451713]/12 py-20 text-center">
           <p className="font-serif text-3xl">Your inbox is clear.</p>

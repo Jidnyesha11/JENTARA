@@ -9,6 +9,7 @@ import {
 
 export default async function CategoriesPage() {
   let categories: Category[] = [];
+  let loadError = false;
 
   try {
     categories =
@@ -18,6 +19,7 @@ export default async function CategoriesPage() {
       "CATEGORIES PAGE ERROR:",
       error
     );
+    loadError = true;
   }
 
   return (
@@ -52,13 +54,15 @@ export default async function CategoriesPage() {
             </p>
 
             <h2 className="mt-5 font-serif text-4xl tracking-[-0.05em]">
-              No Collections Available
+              {loadError
+                ? "Collections could not be loaded"
+                : "No Collections Available"}
             </h2>
 
-            <p className="mx-auto mt-4 max-w-md text-sm leading-7 text-[#151a2a]/55">
-              JENTARA collections will
-              appear here once they are
-              added.
+            <p role={loadError ? "alert" : undefined} className="mx-auto mt-4 max-w-md text-sm leading-7 text-[#151a2a]/55">
+              {loadError
+                ? "Refresh the page to try again."
+                : "JENTARA collections will appear here once they are added."}
             </p>
 
             <Link

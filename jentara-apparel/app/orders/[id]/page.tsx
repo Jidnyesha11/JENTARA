@@ -165,6 +165,7 @@ export default function OrderDetailsPage() {
   const [items, setItems] = useState<OrderItem[]>([]);
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const orderId = String(params.id);
@@ -210,6 +211,7 @@ export default function OrderDetailsPage() {
         if (!cancelled) {
           setOrder(null);
           setItems([]);
+          setLoadError(true);
           setLoading(false);
         }
 
@@ -223,6 +225,7 @@ export default function OrderDetailsPage() {
 
       if (itemError) {
         console.error("Failed to load order items:", itemError);
+        if (!cancelled) setLoadError(true);
       }
 
       if (!cancelled) {
@@ -301,11 +304,13 @@ export default function OrderDetailsPage() {
           </p>
 
           <h1 className="mt-6 font-serif text-5xl tracking-[-0.06em]">
-            Order not found
+            {loadError ? "Order could not be loaded" : "Order not found"}
           </h1>
 
-          <p className="mx-auto mt-5 max-w-md text-[12px] leading-6 text-[#451713]/55">
-            We could not find this order in your account.
+          <p role={loadError ? "alert" : undefined} className="mx-auto mt-5 max-w-md text-[12px] leading-6 text-[#451713]/55">
+            {loadError
+              ? "We could not load this order. Refresh the page to try again."
+              : "We could not find this order in your account."}
           </p>
 
           <Link
@@ -327,6 +332,11 @@ export default function OrderDetailsPage() {
   return (
     <main className="min-h-screen bg-[#f5ede4] text-[#451713]">
       <div className="mx-auto max-w-[1500px] px-5 py-12 sm:px-8 sm:py-16 lg:px-10 lg:py-20">
+        {loadError && (
+          <p role="alert" className="mb-6 border border-red-900/15 bg-red-50 px-5 py-4 text-[11px] leading-5 text-red-900/75">
+            Some order items could not be loaded. Refresh the page to try again.
+          </p>
+        )}
         <header className="border-b border-[#451713]/15 pb-10">
           <div className="flex items-center gap-3">
             <span className="h-px w-8 bg-[#451713]" />

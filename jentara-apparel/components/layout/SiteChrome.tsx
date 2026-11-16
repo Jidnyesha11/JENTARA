@@ -13,6 +13,7 @@ const standaloneRoutes = [
   "/phone-login",
   "/otp",
   "/forgot-password",
+  "/reset-password",
 ];
 
 export default function SiteChrome({

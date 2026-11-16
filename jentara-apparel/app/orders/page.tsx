@@ -51,6 +51,8 @@ export default function OrdersPage() {
   const { user, loading } = useAuth();
 
   const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(
     null
   );
@@ -61,32 +63,43 @@ export default function OrdersPage() {
       return;
     }
 
+    if (!user) return;
+
+    const userId = user.id;
+    let active = true;
+
     async function loadOrders() {
-      if (!user) return;
+      try {
+        const { data, error } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", {
+            ascending: false,
+          });
 
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", {
-          ascending: false,
-        });
+        if (error) throw error;
+        if (!active) return;
 
-      if (error) {
+        const loadedOrders = data ?? [];
+        setOrders(loadedOrders);
+
+        if (loadedOrders.length > 0) {
+          setSelectedOrderId(loadedOrders[0].id);
+        }
+      } catch (error) {
         console.error("Failed to load orders:", error);
-        return;
-      }
-
-      const loadedOrders = data ?? [];
-
-      setOrders(loadedOrders);
-
-      if (loadedOrders.length > 0) {
-        setSelectedOrderId(loadedOrders[0].id);
+        if (active) setOrdersError(true);
+      } finally {
+        if (active) setOrdersLoading(false);
       }
     }
 
-    loadOrders();
+    void loadOrders();
+
+    return () => {
+      active = false;
+    };
   }, [user, loading, router]);
 
   const selectedOrder = useMemo(() => {
@@ -141,7 +154,7 @@ export default function OrdersPage() {
     return index;
   }
 
-  if (loading) {
+  if (loading || ordersLoading) {
     return (
       <main className="min-h-screen bg-[#f5ede4] text-[#451713]">
         <div className="flex min-h-[60vh] items-center justify-center">
@@ -155,6 +168,24 @@ export default function OrdersPage() {
 
   if (!user) {
     return null;
+  }
+
+  if (ordersError) {
+    return (
+      <main className="min-h-screen bg-[#f5ede4] text-[#451713]">
+        <div className="mx-auto max-w-3xl px-6 py-24 text-center">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.3em] text-[#451713]/45">
+            JENTARA / ACCOUNT
+          </p>
+          <h1 className="mt-6 font-serif text-5xl tracking-[-0.06em]">
+            Orders could not be loaded.
+          </h1>
+          <p role="alert" className="mt-5 text-[12px] leading-6 text-[#451713]/55">
+            Refresh the page to try again.
+          </p>
+        </div>
+      </main>
+    );
   }
 
   return (

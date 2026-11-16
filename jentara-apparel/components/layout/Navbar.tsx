@@ -9,25 +9,6 @@ import { usePathname } from "next/navigation";
 import CategoriesMenu from "@/components/layout/CategoriesMenu";
 import ProfileMenu from "@/components/layout/ProfileMenu";
 
-const navigation = [
-  {
-    label: "Home",
-    href: "/",
-  },
-  {
-    label: "Shop",
-    href: "/shop",
-  },
-  {
-    label: "About Us",
-    href: "/about",
-  },
-  {
-    label: "Contact Us",
-    href: "/contact",
-  },
-];
-
 export default function Navbar() {
   const pathname = usePathname();
 

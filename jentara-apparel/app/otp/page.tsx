@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import {
+  resolveSafeRedirectPath,
   sendOtp,
   verifyOtp,
 } from "@/lib/supabase/auth";
@@ -32,6 +33,7 @@ function OtpContent() {
 
   const phone =
     searchParams.get("phone") ?? "";
+  const redirectPath = searchParams.get("redirect");
 
   const [otp, setOtp] =
     useState<string[]>(
@@ -247,7 +249,14 @@ function OtpContent() {
         throw verifyError;
       }
 
-      router.replace("/");
+      router.replace(
+        redirectPath
+          ? resolveSafeRedirectPath(
+              redirectPath,
+              window.location.origin,
+            )
+          : "/",
+      );
       router.refresh();
     } catch (verifyError: unknown) {
       console.error(

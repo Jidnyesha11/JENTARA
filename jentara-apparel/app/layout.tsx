@@ -11,13 +11,13 @@ import {
 
 import SiteChrome from "@/components/layout/SiteChrome";
 
-export const playfair =
+const playfair =
   Playfair_Display({
     subsets: ["latin"],
     variable: "--font-playfair",
   });
 
-export const poppins =
+const poppins =
   Poppins({
     subsets: ["latin"],
     weight: [

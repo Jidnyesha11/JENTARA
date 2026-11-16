@@ -2,7 +2,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getAllProducts } from "@/lib/supabase/admin-products";
+import {
+  getAllProducts,
+  type AdminProduct,
+} from "@/lib/supabase/admin-products";
 import {
   deleteAdminReview,
   getAdminReviews,
@@ -22,9 +25,10 @@ function Stars({ rating }: { rating: number }) {
 
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<AdminReview[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<AdminProduct[]>([]);
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     Promise.all([getAdminReviews(), getAllProducts()])
@@ -32,7 +36,10 @@ export default function ReviewsPage() {
         setReviews(reviewData);
         setProducts(productData ?? []);
       })
-      .catch((error) => console.error(error))
+      .catch((error) => {
+        console.error(error);
+        setLoadError(true);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -110,6 +117,10 @@ export default function ReviewsPage() {
 
       {loading ? (
         <div className="py-20 text-center text-[9px] uppercase tracking-[0.2em] text-[#451713]/40">Loading reviews</div>
+      ) : loadError ? (
+        <p role="alert" className="border-y border-red-900/15 py-12 text-center text-[11px] text-red-900/75">
+          Reviews could not be loaded. Refresh the page to try again.
+        </p>
       ) : filtered.length === 0 ? (
         <div className="border-y border-[#451713]/12 py-20 text-center">
           <p className="font-serif text-3xl">No reviews in this view.</p>

@@ -38,7 +38,7 @@ export default function WishlistPage() {
 
               <p className="mt-6 max-w-lg text-[12px] leading-6 text-[#451713]/60 sm:text-[13px]">
                 A personal edit of the pieces you
-                love. Keep them here until you're
+                love. Keep them here until you&apos;re
                 ready to make them yours.
               </p>
             </div>
@@ -86,8 +86,8 @@ export default function WishlistPage() {
 
             <p className="mt-5 max-w-md text-[12px] leading-6 text-[#451713]/55">
               Explore the collection and save the
-              pieces that speak to you. They'll be
-              waiting here whenever you're ready.
+              pieces that speak to you. They&apos;ll be
+              waiting here whenever you&apos;re ready.
             </p>
 
             <Link

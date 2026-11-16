@@ -15,6 +15,7 @@ export default function InventoryPage() {
   const [query, setQuery] = useState("");
   const [savingId, setSavingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -28,6 +29,7 @@ export default function InventoryPage() {
         }
       } catch (error) {
         console.error(error);
+        if (isMounted) setLoadError(true);
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -130,6 +132,10 @@ export default function InventoryPage() {
         <div className="border-y border-[#451713]/12 py-20 text-center text-[9px] uppercase tracking-[0.2em] text-[#451713]/40">
           Loading inventory
         </div>
+      ) : loadError ? (
+        <p role="alert" className="border-y border-red-900/15 py-12 text-center text-[11px] text-red-900/75">
+          Inventory could not be loaded. Refresh the page to try again.
+        </p>
       ) : (
         <div className="divide-y divide-[#451713]/10 border-y border-[#451713]/12">
           {filtered.map((product) => {
