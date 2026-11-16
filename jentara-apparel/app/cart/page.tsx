@@ -141,7 +141,7 @@ export default function CartPage() {
             </div>
 
             <div>
-              {items.map((item, index) => (
+              {items.map((item) => (
                 <article
                   key={`${item.id}-${item.size}`}
                   className="grid grid-cols-[110px_minmax(0,1fr)] gap-5 border-b border-[#451713]/15 py-7 sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-7 sm:py-9 lg:grid-cols-[175px_minmax(0,1fr)]"

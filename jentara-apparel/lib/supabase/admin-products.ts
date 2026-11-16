@@ -1,6 +1,22 @@
 import { supabase } from "./client";
 
-export async function getAllProducts() {
+export interface AdminProduct {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  price: number;
+  original_price: number | null;
+  category_id: string | null;
+  image_url: string | null;
+  sizes: string | null;
+  size_inventory: Record<string, number> | null;
+  stock: number | null;
+  featured: boolean | null;
+  created_at: string | null;
+}
+
+export async function getAllProducts(): Promise<AdminProduct[]> {
   const { data, error } =
     await supabase
       .from("products")
@@ -13,7 +29,7 @@ export async function getAllProducts() {
     throw error;
   }
 
-  return data;
+  return (data ?? []) as AdminProduct[];
 }
 
 export async function createProduct(
@@ -42,12 +58,12 @@ export async function createProduct(
     throw error;
   }
 
-  return data;
+  return data as AdminProduct;
 }
 
 export async function getProductById(
-  id: string
-) {
+  id: string,
+): Promise<AdminProduct> {
   const { data, error } =
     await supabase
       .from("products")
@@ -59,7 +75,7 @@ export async function getProductById(
     throw error;
   }
 
-  return data;
+  return data as AdminProduct;
 }
 
 export async function updateProduct(

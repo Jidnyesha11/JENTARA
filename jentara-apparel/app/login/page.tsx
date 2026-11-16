@@ -14,9 +14,22 @@ import {
 } from "lucide-react";
 
 import {
+  resolveSafeRedirectPath,
   signIn,
   signInWithGoogle,
 } from "@/lib/supabase/auth";
+
+function getRequestedLoginRedirectPath(): string | null {
+  const requested = new URLSearchParams(window.location.search).get("redirect");
+
+  if (!requested) return null;
+
+  return resolveSafeRedirectPath(requested, window.location.origin);
+}
+
+function getLoginRedirectPath(): string {
+  return getRequestedLoginRedirectPath() ?? "/";
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -73,7 +86,7 @@ export default function LoginPage() {
         throw signInError;
       }
 
-      router.replace("/");
+      router.replace(getLoginRedirectPath());
       router.refresh();
     } catch (loginError: unknown) {
       console.error(
@@ -111,7 +124,9 @@ export default function LoginPage() {
       setGoogleLoading(true);
 
       const { error: googleError } =
-        await signInWithGoogle();
+        await signInWithGoogle(
+          getRequestedLoginRedirectPath() ?? undefined,
+        );
 
       if (googleError) {
         throw googleError;
@@ -589,6 +604,16 @@ export default function LoginPage() {
               <div className="grid grid-cols-2 gap-3">
                 <Link
                   href="/phone-login"
+                  onClick={(event) => {
+                    const redirectPath = getRequestedLoginRedirectPath();
+
+                    if (redirectPath) {
+                      event.preventDefault();
+                      router.push(
+                        `/phone-login?redirect=${encodeURIComponent(redirectPath)}`,
+                      );
+                    }
+                  }}
                   className="
                     flex
                     items-center

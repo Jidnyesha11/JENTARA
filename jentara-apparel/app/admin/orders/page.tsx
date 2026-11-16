@@ -7,6 +7,7 @@ import {
   getAllOrders,
   ORDER_STATUSES,
   updateOrderStatus,
+  type AdminOrder,
   type OrderStatus,
 } from "@/lib/supabase/admin-orders";
 
@@ -29,23 +30,30 @@ function statusClass(status: string) {
 }
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
-
-  async function loadOrders() {
-    try {
-      setOrders(await getAllOrders());
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    void loadOrders();
+    let active = true;
+
+    getAllOrders()
+      .then((data) => {
+        if (active) setOrders(data);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (active) setLoadError(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const filtered = useMemo(() => {
@@ -121,6 +129,10 @@ export default function AdminOrdersPage() {
         <div className="py-20 text-center text-[9px] uppercase tracking-[0.2em] text-[#451713]/40">
           Loading orders
         </div>
+      ) : loadError ? (
+        <p role="alert" className="border-y border-red-900/15 py-12 text-center text-[11px] text-red-900/75">
+          Orders could not be loaded. Refresh the page to try again.
+        </p>
       ) : filtered.length === 0 ? (
         <div className="border-y border-[#451713]/12 py-20 text-center">
           <p className="font-serif text-3xl">No matching orders.</p>

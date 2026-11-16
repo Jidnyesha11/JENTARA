@@ -11,7 +11,38 @@ export const ORDER_STATUSES = [
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
-export async function getAllOrders() {
+export interface AdminOrder {
+  id: string;
+  user_id: string | null;
+  customer_name: string | null;
+  customer_email: string | null;
+  customer_phone: string | null;
+  total_amount: number;
+  status: string | null;
+  created_at: string;
+  address_line_1: string | null;
+  address_line_2: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+}
+
+export interface AdminOrderItem {
+  id: string;
+  order_id: string;
+  product_id: string | null;
+  product_name: string | null;
+  price: number;
+  quantity: number;
+  size: string | null;
+}
+
+export interface AdminOrderDetails {
+  order: AdminOrder;
+  items: AdminOrderItem[];
+}
+
+export async function getAllOrders(): Promise<AdminOrder[]> {
   const { data, error } = await supabase
     .from("orders")
     .select(
@@ -20,10 +51,12 @@ export async function getAllOrders() {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as AdminOrder[];
 }
 
-export async function getAdminOrder(id: string) {
+export async function getAdminOrder(
+  id: string,
+): Promise<AdminOrderDetails | null> {
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .select(
@@ -42,13 +75,16 @@ export async function getAdminOrder(id: string) {
 
   if (itemsError) throw itemsError;
 
-  return { order, items: items ?? [] };
+  return {
+    order: order as AdminOrder,
+    items: (items ?? []) as AdminOrderItem[],
+  };
 }
 
 export async function updateOrderStatus(
   orderId: string,
   status: OrderStatus,
-) {
+) : Promise<AdminOrder> {
   const { data, error } = await supabase
     .from("orders")
     .update({ status })
@@ -57,5 +93,5 @@ export async function updateOrderStatus(
     .single();
 
   if (error) throw error;
-  return data;
+  return data as AdminOrder;
 }

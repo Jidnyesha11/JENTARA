@@ -4,7 +4,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { getCategories } from "@/lib/supabase/categories";
+import { getCategories, type Category } from "@/lib/supabase/categories";
 import { createProduct } from "@/lib/supabase/admin-products";
 import { uploadProductImage } from "@/lib/supabase/storage";
 
@@ -16,7 +16,7 @@ function slugify(value: string) {
 
 export default function AddProductPage() {
   const router = useRouter();
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");

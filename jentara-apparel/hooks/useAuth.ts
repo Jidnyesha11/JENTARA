@@ -12,30 +12,48 @@ export function useAuth() {
     useState(true);
 
   useEffect(() => {
-    async function getUser() {
-      const {
-        data: { user },
-      } =
-        await supabase.auth.getUser();
-
-      setUser(user);
-      setLoading(false);
-    }
-
-    getUser();
+    let active = true;
 
     const {
       data: listener,
     } =
       supabase.auth.onAuthStateChange(
         (_, session) => {
+          if (!active) return;
+
           setUser(
             session?.user ?? null
           );
+          setLoading(false);
         }
       );
 
+    async function getUser() {
+      try {
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
+
+        if (
+          error &&
+          error.name !== "AuthSessionMissingError"
+        ) {
+          throw error;
+        }
+        if (active) setUser(user);
+      } catch (error) {
+        console.error("AUTH SESSION ERROR:", error);
+        if (active) setUser(null);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    void getUser();
+
     return () => {
+      active = false;
       listener.subscription.unsubscribe();
     };
   }, []);

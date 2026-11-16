@@ -1,5 +1,47 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import {
+  createJSONStorage,
+  persist,
+  type StateStorage,
+} from "zustand/middleware";
+
+let cartHydrationSucceeded = false;
+
+const cartStorage = createJSONStorage<CartStore>(
+  () => {
+    const storage: StateStorage = {
+      getItem: (name) => {
+        if (typeof window === "undefined") return null;
+        return window.localStorage.getItem(name);
+      },
+      setItem: (name, value) => {
+        if (
+          typeof window === "undefined" ||
+          !cartHydrationSucceeded
+        ) {
+          return;
+        }
+
+        try {
+          window.localStorage.setItem(name, value);
+        } catch (error) {
+          console.warn("CART PERSISTENCE ERROR:", error);
+        }
+      },
+      removeItem: (name) => {
+        if (typeof window === "undefined") return;
+
+        try {
+          window.localStorage.removeItem(name);
+        } catch (error) {
+          console.warn("CART PERSISTENCE ERROR:", error);
+        }
+      },
+    };
+
+    return storage;
+  },
+);
 
 export interface CartItem {
   id: string;
@@ -151,6 +193,10 @@ export const useCartStore =
       }),
       {
         name: "jentara-cart-v3",
+        storage: cartStorage,
+        onRehydrateStorage: () => (_state, error) => {
+          if (!error) cartHydrationSucceeded = true;
+        },
       }
     )
   );

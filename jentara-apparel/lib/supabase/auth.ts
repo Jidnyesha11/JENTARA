@@ -5,6 +5,23 @@ export interface SignUpMetadata {
   phone?: string;
 }
 
+export function resolveSafeRedirectPath(
+  requested: string | null | undefined,
+  origin: string,
+  fallback = "/",
+): string {
+  if (!requested) return fallback;
+
+  try {
+    const target = new URL(requested, origin);
+    return target.origin === new URL(origin).origin
+      ? `${target.pathname}${target.search}${target.hash}`
+      : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 function normalizeIndianPhone(
   phone: string
 ): string {
@@ -56,18 +73,29 @@ export async function signOut() {
   return supabase.auth.signOut();
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(redirectPath?: string) {
   if (typeof window === "undefined") {
     throw new Error(
       "Google sign-in must be started in the browser."
     );
   }
 
+  const redirectTo = new URL("/profile", window.location.origin);
+
+  if (redirectPath) {
+    redirectTo.searchParams.set(
+      "redirect",
+      resolveSafeRedirectPath(
+        redirectPath,
+        window.location.origin,
+      ),
+    );
+  }
+
   return supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo:
-        `${window.location.origin}/profile`,
+      redirectTo: redirectTo.toString(),
     },
   });
 }

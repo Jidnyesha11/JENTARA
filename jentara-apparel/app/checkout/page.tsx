@@ -2,7 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -26,6 +31,18 @@ type PaymentMethod = "card" | "upi" | "cod";
 
 function formatPrice(value: number): string {
   return `₹${Number(value).toLocaleString("en-IN")}`;
+}
+
+function subscribeToCartHydration(onStoreChange: () => void) {
+  return useCartStore.persist.onFinishHydration(onStoreChange);
+}
+
+function getCartHydrationSnapshot() {
+  return useCartStore.persist.hasHydrated();
+}
+
+function getServerCartHydrationSnapshot() {
+  return false;
 }
 
 function AddressBlock({
@@ -84,10 +101,6 @@ export default function CheckoutPage() {
     (state) => state.clearCart
   );
 
-  const getTotal = useCartStore(
-    (state) => state.getTotal
-  );
-
   const [address, setAddress] =
     useState<Address | null>(null);
 
@@ -100,12 +113,29 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>("upi");
 
-  const [hydrated, setHydrated] =
+  const [hydrationTimedOut, setHydrationTimedOut] =
     useState(false);
 
+  const [hydrationRetryCount, setHydrationRetryCount] =
+    useState(0);
+
+  const hydrated = useSyncExternalStore(
+    subscribeToCartHydration,
+    getCartHydrationSnapshot,
+    getServerCartHydrationSnapshot,
+  );
+
   useEffect(() => {
-    setHydrated(true);
-  }, []);
+    if (hydrated) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setHydrationTimedOut(true);
+    }, 2000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [hydrated, hydrationRetryCount]);
 
   useEffect(() => {
     if (loading) return;
@@ -396,7 +426,7 @@ export default function CheckoutPage() {
 
   if (
     loading ||
-    !hydrated
+    (!hydrated && !hydrationTimedOut)
   ) {
     return (
       <main className="min-h-screen bg-[#f5ede4] text-[#451713]">
@@ -415,6 +445,53 @@ export default function CheckoutPage() {
 
   if (!user) {
     return null;
+  }
+
+  if (!hydrated && hydrationTimedOut) {
+    return (
+      <main className="min-h-screen bg-[#f5ede4] text-[#451713]">
+        <div className="mx-auto flex min-h-[70vh] max-w-[1500px] items-center justify-center px-6">
+          <section className="max-w-lg text-center">
+            <p className="text-[8px] font-semibold uppercase tracking-[0.3em] text-[#451713]/45">
+              JENTARA / CHECKOUT
+            </p>
+
+            <h1 className="mt-6 font-serif text-[52px] leading-[0.9] tracking-[-0.06em] sm:text-[70px]">
+              Your cart could not be restored.
+            </h1>
+
+            <p role="alert" className="mt-5 text-[12px] leading-6 text-[#451713]/55">
+              Return to your cart and check your items before continuing.
+            </p>
+
+            <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => {
+                  setHydrationTimedOut(false);
+                  setHydrationRetryCount((count) => count + 1);
+                  useCartStore.persist.rehydrate();
+                }}
+                className="inline-flex min-h-12 items-center justify-center bg-[#451713] px-7 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#f5ede4] transition-colors hover:bg-[#5c211b]"
+              >
+                Try again
+              </button>
+
+              <Link
+                href="/cart"
+                className="group inline-flex min-h-12 items-center gap-4 border border-[#451713]/25 px-7 text-[9px] font-semibold uppercase tracking-[0.2em] transition-colors hover:bg-[#efe4d9]"
+              >
+                Return to cart
+
+                <span className="text-base transition-transform group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
+            </div>
+          </section>
+        </div>
+      </main>
+    );
   }
 
   if (items.length === 0) {

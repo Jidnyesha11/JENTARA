@@ -155,7 +155,7 @@ export default function AboutPage() {
                   md:text-[46px]
                 "
               >
-                JENTARA was founded in 2026 by four young creators driven by
+                JENTARA was founded in 2026 by three young creators driven by
                 one vision—to build a brand that represents the spirit of a
                 new generation.
               </h2>

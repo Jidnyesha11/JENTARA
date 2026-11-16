@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import {
+  resolveSafeRedirectPath,
   sendOtp,
   signInWithGoogle,
 } from "@/lib/supabase/auth";
@@ -64,11 +65,22 @@ export default function PhoneLoginPage() {
         throw otpError;
       }
 
-      router.push(
-        `/otp?phone=${encodeURIComponent(
-          phone
-        )}`
-      );
+      const requestedRedirect = new URLSearchParams(
+        window.location.search,
+      ).get("redirect");
+      const query = new URLSearchParams({ phone });
+
+      if (requestedRedirect) {
+        query.set(
+          "redirect",
+          resolveSafeRedirectPath(
+            requestedRedirect,
+            window.location.origin,
+          ),
+        );
+      }
+
+      router.push(`/otp?${query.toString()}`);
     } catch (otpError: unknown) {
       console.error(
         "SEND OTP ERROR:",
@@ -104,8 +116,19 @@ export default function PhoneLoginPage() {
       setError("");
       setGoogleLoading(true);
 
+      const requestedRedirect = new URLSearchParams(
+        window.location.search,
+      ).get("redirect");
+
       const { error: googleError } =
-        await signInWithGoogle();
+        await signInWithGoogle(
+          requestedRedirect
+            ? resolveSafeRedirectPath(
+                requestedRedirect,
+                window.location.origin,
+              )
+            : undefined,
+        );
 
       if (googleError) {
         throw googleError;

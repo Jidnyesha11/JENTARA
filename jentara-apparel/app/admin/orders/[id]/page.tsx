@@ -8,6 +8,7 @@ import {
   getAdminOrder,
   ORDER_STATUSES,
   updateOrderStatus,
+  type AdminOrderDetails,
   type OrderStatus,
 } from "@/lib/supabase/admin-orders";
 
@@ -16,23 +17,34 @@ const money = (value: number) =>
 
 export default function AdminOrderDetailsPage() {
   const params = useParams<{ id: string }>();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<AdminOrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
-  async function loadOrder() {
-    try {
-      setData(await getAdminOrder(params.id));
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const [loadError, setLoadError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    if (params.id) void loadOrder();
-  }, [params.id]);
+    let active = true;
+
+    getAdminOrder(params.id)
+      .then((order) => {
+        if (active) setData(order);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (active) {
+          setData(null);
+          setLoadError(true);
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [params.id, retryCount]);
 
   async function changeStatus(status: OrderStatus) {
     if (!data?.order) return;
@@ -41,10 +53,14 @@ export default function AdminOrderDetailsPage() {
 
     try {
       const updated = await updateOrderStatus(data.order.id, status);
-      setData((current: any) => ({
-        ...current,
-        order: { ...current.order, ...updated },
-      }));
+      setData((current) =>
+        current
+          ? {
+              ...current,
+              order: { ...current.order, ...updated },
+            }
+          : current,
+      );
     } catch (error) {
       console.error(error);
       window.alert("Status could not be updated.");
@@ -55,6 +71,32 @@ export default function AdminOrderDetailsPage() {
 
   if (loading) {
     return <div className="mx-auto max-w-[1500px] px-5 py-20 text-[9px] uppercase tracking-[0.2em]">Loading order</div>;
+  }
+
+  if (loadError) {
+    return (
+      <div className="mx-auto max-w-[1500px] px-5 py-20 text-center">
+        <p className="font-serif text-3xl">Order could not be loaded.</p>
+        <p role="alert" className="mt-4 text-[11px] leading-5 text-[#451713]/60">
+          Please try again or return to the orders list.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setData(null);
+            setLoadError(false);
+            setLoading(true);
+            setRetryCount((count) => count + 1);
+          }}
+          className="mt-6 inline-block text-[9px] font-semibold uppercase tracking-[0.18em] underline"
+        >
+          Try again
+        </button>
+        <Link href="/admin/orders" className="ml-6 mt-6 inline-block text-[9px] font-semibold uppercase tracking-[0.18em] underline">
+          Back to orders →
+        </Link>
+      </div>
+    );
   }
 
   if (!data?.order) {
@@ -71,7 +113,7 @@ export default function AdminOrderDetailsPage() {
   const order = data.order;
   const items = data.items ?? [];
   const itemTotal = items.reduce(
-    (total: number, item: any) => total + Number(item.price ?? 0) * Number(item.quantity ?? 0),
+    (total, item) => total + Number(item.price ?? 0) * Number(item.quantity ?? 0),
     0,
   );
 
@@ -118,7 +160,7 @@ export default function AdminOrderDetailsPage() {
           </div>
 
           <div className="divide-y divide-[#451713]/10">
-            {items.map((item: any) => (
+            {items.map((item) => (
               <div key={item.id} className="grid gap-4 p-6 sm:grid-cols-[1fr_auto] sm:p-8">
                 <div>
                   <p className="font-serif text-xl">{item.product_name}</p>

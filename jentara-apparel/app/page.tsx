@@ -9,12 +9,15 @@ import Testimonials from "@/components/sections/Testimonials";
 import InstagramSection from "@/components/sections/InstagramSection";
 import ServiceBenefits from "@/components/sections/ServiceBenefits";
 
-import { getAllProducts } from "@/lib/supabase/admin-products";
+import {
+  getAllProducts,
+  type AdminProduct,
+} from "@/lib/supabase/admin-products";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  let products = [];
+  let products: AdminProduct[] = [];
 
   try {
     products = await getAllProducts();

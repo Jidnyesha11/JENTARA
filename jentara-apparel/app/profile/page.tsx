@@ -7,7 +7,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/hooks/useAuth";
-import { signOut } from "@/lib/supabase/auth";
+import {
+  resolveSafeRedirectPath,
+  signOut,
+} from "@/lib/supabase/auth";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -16,6 +19,23 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/login");
+      return;
+    }
+
+    if (!loading && user) {
+      const requested = new URLSearchParams(
+        window.location.search,
+      ).get("redirect");
+
+      if (requested) {
+        router.replace(
+          resolveSafeRedirectPath(
+            requested,
+            window.location.origin,
+            "/profile",
+          ),
+        );
+      }
     }
   }, [loading, user, router]);
 
