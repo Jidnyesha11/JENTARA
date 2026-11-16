@@ -84,6 +84,12 @@ const navigationSections: NavigationSection[] = [
         icon: "◇",
         available: true,
       },
+      {
+        label: "Automation",
+        href: "/admin/automation",
+        icon: "⚙",
+        available: true,
+      },
     ],
   },
   {
